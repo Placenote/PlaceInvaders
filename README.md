@@ -21,7 +21,7 @@ Register for a Free Photon Multiplayer Account and place your account's "AppId" 
 
 Step 1.): open Placenote Invaders on both phones,
 
-Step 2.) Player 1 and PLayer 2 must tap the top left "Multiplayer Button" (3 horizontal lines) and press the the "connect" button on right of the Multiplayer Screen to join the "PrototypeRoom".  *Note, both players must be connected to the Prototype Room before Player 1 scans the room.
+Step 2.) Player 1 and Player 2 must tap the top left "Multiplayer Button" (3 horizontal lines) and press the the "connect" button on right of the Multiplayer Screen to join the "PrototypeRoom".  *Note, both players must be connected to the Prototype Room before Player 1 scans the room.
 
 Step 3.) Player 1 will press the "Placenote Scan button" (2nd button) then scan play area - moving side to side.  When finished scanning, Player 1 will press "Placenote Scan Button" again to complete the scan and save the space's data,
 
@@ -41,12 +41,12 @@ ArKit: https://assetstore.unity.com/packages/essentials/tutorial-projects/unity-
 
 Placenote (creating AR maps): https://github.com/Placenote/PlacenoteSDK-Unity
 
-Photon (for multiplaying): https://assetstore.unity.com/packages/tools/network/photon-unity-networking-free-1786 
+Photon (for multiplaying): https://assetstore.unity.com/packages/tools/network/photon-unity-networking-free-1786
 
 Space Invader Models with animation: https://www.turbosquid.com/3d-models/space-invader-set-3d-model/768637
 
 
-Scripts: 
+Scripts:
 
 GameController - control game logic: starting game, creating enemies, managing players (creating new, registering,removing)
 
@@ -56,9 +56,9 @@ WeaponController - Shooting enemies and call missing or hit actions on AnimatedG
 
 AnimatedGun - make shots: damage enemies, shooting animation, control time between shots, synchronize shots with Photon
 
-EnemyAI -   each enemy has this component, that control enemies behaviour (attacking players, moving), contain enemy properties( AttackPower, AttackTimeLimit, Speed etc.) 
+EnemyAI -   each enemy has this component, that control enemies behaviour (attacking players, moving), contain enemy properties( AttackPower, AttackTimeLimit, Speed etc.)
 
-EnemyState - each enemy has this component, contain enemies health, and when player hit, decrease enemy health, when health <= 0, animated destroying enemy 
+EnemyState - each enemy has this component, contain enemies health, and when player hit, decrease enemy health, when health <= 0, animated destroying enemy
 
 GameData - Simple class mostly for UI  to store game data with support of notifications about changes, UI component have to be responsible itself to decide when it have be notified and which data should be shown
 

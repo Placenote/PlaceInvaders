@@ -127,7 +127,7 @@ namespace GameUiNs
                 GetComponent<PhotonView>().RPC("ActivateEnvironmentScanningBtnRPC", PhotonTargets.All);
             
             FeaturesVisualizer.DisablePointcloud();
-            FeaturesVisualizer.ClearPoints();
+			FeaturesVisualizer.clearPointcloud();
             //StartEnvironmentScaningBtn.gameObject.SetActive(true);
         }
 
