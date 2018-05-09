@@ -53,7 +53,7 @@ namespace PunServerNs
 
             // #Critical
             // this makes sure we can use PhotonNetwork.LoadLevel() on the master client and all clients in the same room sync their level automatically
-            PhotonNetwork.automaticallySyncScene = false;
+            PhotonNetwork.automaticallySyncScene = false; //TODO The tutorial says this should be true. Not sure...
 
 
         }
@@ -61,7 +61,7 @@ namespace PunServerNs
         {
             // PhotonNetwork.connectionState = new ConnectionState();
             //dbgDoConnect = false;
-            roomOptions = new RoomOptions();
+			roomOptions = new RoomOptions() { MaxPlayers = 4};
 
         }
 
@@ -86,15 +86,16 @@ namespace PunServerNs
 
        // public bool dbgDoConnect;
 
-        public void Connect(string playerName)
+		public void Connect(string playerName, string roomName)
         {
             Debug.Log("Called Connect() at state " + PhotonNetwork.connectionState);
+			RoomName = roomName;
 
             if (PhotonNetwork.connectionState == ConnectionState.Disconnected)
             {
                 PhotonNetwork.playerName = playerName;
                 Debug.Log("userid "+PhotonNetwork.player.UserId);
-               // connect as defined in Photon configuration file
+                // connect as defined in Photon configuration file
                 PhotonNetwork.ConnectUsingSettings(GameNetVersion);
                 SetNetState(NetGameStateId.Connecting, "Connecting started");
             }
@@ -108,7 +109,7 @@ namespace PunServerNs
 
 
 
-           public void Subscribe(Action<NetGameStateId, string> onNetStateChanged)
+        public void Subscribe(Action<NetGameStateId, string> onNetStateChanged)
         {
             NetStateChanged += onNetStateChanged;
         }
@@ -145,6 +146,7 @@ namespace PunServerNs
         public override void OnJoinedLobby()
         {
             Debug.Log("--------- OnJoinedLobby: ------------------------");
+			Debug.Log (PhotonNetwork.insideLobby);
             PhotonNetwork.JoinOrCreateRoom(RoomName, roomOptions, lobby);
             SetNetState(NetGameStateId.Connecting, "Joined Lobby");
         }
@@ -169,6 +171,8 @@ namespace PunServerNs
             SetNetState(NetGameStateId.Connected,
                 "Joined room:"+
                 (PhotonNetwork.room == null ? "null" : PhotonNetwork.room.Name) );
+			Debug.Log (PhotonNetwork.GetRoomList ());
+			Debug.Log (PhotonNetwork.insideLobby);
         }
 
         public override void OnDisconnectedFromPhoton()

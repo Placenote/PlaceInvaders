@@ -31,7 +31,7 @@ namespace CommonNs
                 m_CurrentFps = (int) (m_FpsAccumulator/fpsMeasurePeriod);
                 m_FpsAccumulator = 0;
                 m_FpsNextPeriod += fpsMeasurePeriod;
-                m_Text.text = string.Format(FormatString, m_CurrentFps);
+                m_Text.text = string.Format(FormatString, "FPS " + m_CurrentFps);
             }
         }
     }

@@ -138,6 +138,7 @@ namespace GameplayNs
 
         public static void RegisterPlayer(PlayerController player)
         {
+			Debug.Log ("Registering player");
             if (player.IsLocalPlayer || player.IsCurrentNetworkPlayer)
             {
                 CurrentPlayer = player;
@@ -210,7 +211,13 @@ namespace GameplayNs
         /// </summary>
         public WeaponController Weapon
         {
-            get { return CurrentPlayer.CurrentWeapon; }
+            get {
+				Debug.Log ("WEAPON");
+				Debug.Log(CurrentPlayer);
+				//Debug.Log (CurrentPlayer.CurrentWeapon);
+				return CurrentPlayer.CurrentWeapon; 
+
+			}
         }
 
 

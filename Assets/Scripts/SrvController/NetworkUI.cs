@@ -15,6 +15,7 @@ namespace NetworkUiNs
         public ConnectionButton ConnectionBtn;
         public ShortTextMessage TextMsg;
         public InputField PlayerName;
+		public InputField RoomName;
 
 
         // Use this for initialization
@@ -27,11 +28,9 @@ namespace NetworkUiNs
             
             ConnectionBtn.AddOnClickListener(DoConnect);
         }
-
-       // public string dbgPlayerName;
+			
         void DoConnect()
         {
-            //  dbgPlayerName = PlayerName.text;
             if (string.IsNullOrEmpty(PlayerName.text))
             {
                 float pseudoUID = Time.realtimeSinceStartup;
@@ -39,9 +38,11 @@ namespace NetworkUiNs
 
                 PlayerName.text = "Player" + Mathf.FloorToInt(pseudoUID);
             }
-          //  dbgPlayerName = PlayerName.text;
-          //  Debug.Log("player input -----'"+PlayerName.text+"'");
-            Srv.Connect(PlayerName.text);
+			if (string.IsNullOrEmpty (RoomName.text)) 
+			{
+				RoomName.text = "Untitled";
+			}
+			Srv.Connect(PlayerName.text, RoomName.text);
         }
 
         void OnConnectionStateChaged(NetGameStateId id, string val)

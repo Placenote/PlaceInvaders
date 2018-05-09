@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections;
 using System.Xml;
 using GameplayNs;
 using Placenote;
@@ -10,26 +11,56 @@ namespace GameUiNs
 
     public class SetupButtons : MonoBehaviour
     {
-        public Text StatusText;
-        public Button ServerBtn;
-        public GameObject ServerPanel;
+        //TODO fix order of these variables
+		public Text StatusText;
 
-        public Button StartEnvironmentScaningBtn;
-        public Button StartGameBtn;
+		// Don't need
+        public Button ServerBtn;
+		public Button StartEnvironmentScaningBtn;
+		public GameObject ServerPanel;
+		// End
+
+		// Main UI elements
+		public GameObject MainMenuPanel;
+		public Button BackBtn;
+
+		public Button JoinGameBtn;
+		public GameObject ViewRoomsPanel;
+
+		public Button JoinRoomBtn;
+		public GameObject JoinedRoomPanel;
+
+		public Button HostGameBtn;
+		public GameObject CreateHostRoomPanel;
+
+		public Button HostRoomBtn;
+		public GameObject HostingRoomPanel;
+
+		// Secondary UI elements
+		public InputField HostingRoomName;
+		public Text HostingRoomText;
+		public Button StartGameBtn;
+
+
         public GameObject PlacenoteShowPoints;
         public FeaturesVisualizer FeaturesVisualizer;
-
         public GameObject flag;
-//        public List<GameObject> ActivateOnGameStart = new List<GameObject>();
 
         private bool isScanning = false;
         private bool isLocalized = false;
+		private Stack UIStack = new Stack();
 
         private void Start()
         {
-            ServerBtn.onClick.AddListener(ToggleServerUI);
-            StartEnvironmentScaningBtn.onClick.AddListener(EnvironmentScanningClick);
-            StartGameBtn.onClick.AddListener(OnStartGameClick);
+			BackBtn.onClick.AddListener (GoBack);
+			JoinGameBtn.onClick.AddListener (ToggleJoinGameUI);
+			HostGameBtn.onClick.AddListener (ToggleHostRoomUI);
+			JoinRoomBtn.onClick.AddListener (ToggleJoinedRoomUI);
+			HostRoomBtn.onClick.AddListener (ToggleHostingRoomUI);
+
+			StartGameBtn.onClick.AddListener(OnStartGameClick);
+			// Adding MainMenu to UIStack
+			UIStack.Push (MainMenuPanel);
         }
 
         #region > Buttons On Click Events
@@ -75,15 +106,75 @@ namespace GameUiNs
         
         #endregion
         
-        private void ToggleServerUI()
-        {
-            if (ServerPanel != null)
-            {
-                ServerPanel.SetActive(!ServerPanel.activeSelf);
-                StartEnvironmentScaningBtn.gameObject.SetActive(!StartEnvironmentScaningBtn.gameObject.activeSelf);
-                StartGameBtn.gameObject.SetActive(!StartGameBtn.gameObject.activeSelf);
-            }
-        }
+		private void ToggleJoinGameUI()
+		{
+			Debug.Log ("Room info start...");
+			Debug.Log (PhotonNetwork.GetRoomList ());
+			foreach (RoomInfo game in PhotonNetwork.GetRoomList()) {
+				Debug.Log (game.name);
+				Debug.Log (game.PlayerCount);
+				Debug.Log (game.MaxPlayers);
+			}
+			Debug.Log ("Room info end...");
+			if (ViewRoomsPanel != null)
+			{
+				ToggleUI (ViewRoomsPanel);
+			}
+		}
+
+		private void ToggleHostRoomUI()
+		{
+			if (CreateHostRoomPanel != null)
+			{
+				ToggleUI (CreateHostRoomPanel);
+			}
+		}
+
+		private void ToggleHostingRoomUI()
+		{
+			if (HostingRoomPanel != null)
+			{
+				if (string.IsNullOrEmpty(HostingRoomName.text))
+					HostingRoomText.text = "Untitled";
+				else
+					HostingRoomText.text = HostingRoomName.text;
+				ToggleUI (HostingRoomPanel);
+			}
+		}
+
+		private void ToggleJoinedRoomUI()
+		{
+			if (JoinedRoomPanel != null)
+			{
+				ToggleUI (JoinedRoomPanel);
+			}
+		}
+
+		private void GoBack()
+		{
+			GameObject currentUI = (GameObject) UIStack.Pop ();
+			currentUI.SetActive (false);
+
+			GameObject prevUI = (GameObject) UIStack.Peek ();
+			prevUI.SetActive (true);
+
+			// Hide back button if at menu
+			if (UIStack.Peek () == MainMenuPanel)
+				BackBtn.gameObject.SetActive (false);
+		}
+
+		private void ToggleUI(GameObject UIToToggle)
+		{
+			// Show back button if last state was menu
+			if (UIStack.Peek () == MainMenuPanel)
+				BackBtn.gameObject.SetActive (true);
+			// Hides currentUI
+			GameObject currentUI = (GameObject) UIStack.Peek ();
+			currentUI.SetActive (false);
+			UIStack.Push (UIToToggle);
+			UIToToggle.SetActive (!UIToToggle.activeSelf);
+			
+		}
 
         #region >> Environment Scanning
         
