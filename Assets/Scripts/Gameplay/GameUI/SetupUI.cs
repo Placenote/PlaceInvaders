@@ -5,60 +5,82 @@ using GameplayNs;
 using Placenote;
 using UnityEngine;
 using UnityEngine.UI;
+using PunServerNs;
 
 namespace GameUiNs
 {
 
-    public class SetupButtons : MonoBehaviour
+    public class SetupUI : MonoBehaviour
     {
-        //TODO fix order of these variables
-		public Text StatusText;
+		public SrvController Srv;
+		public Text StatusText; // TODO figure out what to do with this
 
-		// Don't need
+		// Don't need.
         public Button ServerBtn;
 		public Button StartEnvironmentScaningBtn;
 		public GameObject ServerPanel;
 		// End
 
-		// Main UI elements
+		#region Main UI elements
+
+		// Stack to keep track of current UI layer
+		private Stack UIStack = new Stack();
+
+		// MainMenu.
 		public GameObject MainMenuPanel;
+		public Button JoinGameBtn;
+		public Button HostGameBtn;
+		// TODO ADD SINGLEPLAYER
+
+		//Back Button.
 		public Button BackBtn;
 
-		public Button JoinGameBtn;
-		public GameObject ViewRoomsPanel;
-
-		public Button JoinRoomBtn;
-		public GameObject JoinedRoomPanel;
-
-		public Button HostGameBtn;
+		// Host a room panel.
 		public GameObject CreateHostRoomPanel;
-
+		public InputField HostingRoomNameInput;
+		public Text HostingRoomName;
 		public Button HostRoomBtn;
+
+		// Inside hosted room
 		public GameObject HostingRoomPanel;
-
-		// Secondary UI elements
-		public InputField HostingRoomName;
-		public Text HostingRoomText;
 		public Button StartGameBtn;
+		public Text HostingRoomPlayers;
 
+		// View all available rooms to join.
+		public GameObject ViewRoomsPanel;
+		public GameObject RoomButtonsParent;		// Need parent to instaniate room buttons in correct location
+		[SerializeField] GameObject roomButtonPrefab;
+		private RoomInfo[] roomsArray;
 
+		// Inside a joined room.
+		public GameObject JoinedRoomPanel;
+		public Text JoinedRoomName;
+
+		#endregion
+
+		// Placenote things
         public GameObject PlacenoteShowPoints;
         public FeaturesVisualizer FeaturesVisualizer;
         public GameObject flag;
 
         private bool isScanning = false;
         private bool isLocalized = false;
-		private Stack UIStack = new Stack();
 
         private void Start()
         {
+			if (Srv == null)
+				Srv = FindObjectOfType<SrvController>();
+			
 			BackBtn.onClick.AddListener (GoBack);
-			JoinGameBtn.onClick.AddListener (ToggleJoinGameUI);
-			HostGameBtn.onClick.AddListener (ToggleHostRoomUI);
-			JoinRoomBtn.onClick.AddListener (ToggleJoinedRoomUI);
-			HostRoomBtn.onClick.AddListener (ToggleHostingRoomUI);
 
+			// Hosting path
+			HostGameBtn.onClick.AddListener (ActivateHostRoomUI);
+			HostRoomBtn.onClick.AddListener (ActivateHostingRoomUI);
 			StartGameBtn.onClick.AddListener(OnStartGameClick);
+
+			// Joining path
+			JoinGameBtn.onClick.AddListener (ActivateViewRoomsUI);
+		
 			// Adding MainMenu to UIStack
 			UIStack.Push (MainMenuPanel);
         }
@@ -67,31 +89,29 @@ namespace GameUiNs
         
         #region >> Start Game
         
-        public void OnStartGameClick()
+        public void OnStartGameClick() // TODO UPDATE
         {
-            if (string.IsNullOrEmpty(EnvironmentScannerController.Instance.LatestMapId))
-            {
+            if (string.IsNullOrEmpty(EnvironmentScannerController.Instance.LatestMapId)) {
                 StatusText.text = "Error! Can't find Environment Scan!";
                 return;
             }
 
             var res = EnvironmentScannerController.Instance.LoadLatestMap(LatestMapLoaded, MapLoadingFail, MapLoadingPercentage);
 
-            if (res)
-            {
+            if (res) {
                 StartGameBtn.gameObject.SetActive(false);
                 ServerBtn.gameObject.SetActive(false);
                 StartEnvironmentScaningBtn.gameObject.SetActive(false);
             }
         }
 
-        private void LatestMapLoaded(string mapId)
+        private void LatestMapLoaded(string mapId) // TODO UPDATE
         {
             StatusText.text = "Map Loaded Succesfully!";
             EnvironmentScannerController.Instance.OnPlacenoteStatusChange.AddListener(PlacenoteStatusChange);
         }
         
-        private void MapLoadingFail(string mapId)
+        private void MapLoadingFail(string mapId) // TODO UPDATE
         {
             StatusText.text = "Map Loading Fail!";
             StartGameBtn.gameObject.SetActive(true);
@@ -99,55 +119,46 @@ namespace GameUiNs
             StartEnvironmentScaningBtn.gameObject.SetActive(true);
         }
 
-        private void MapLoadingPercentage(float percentage)
+        private void MapLoadingPercentage(float percentage) //TODO UPDATE
         {
             StatusText.text = "Loading Map..." + (percentage * 100f) + "%";
         }
         
         #endregion
         
-		private void ToggleJoinGameUI()
-		{
-			Debug.Log ("Room info start...");
-			Debug.Log (PhotonNetwork.GetRoomList ());
-			foreach (RoomInfo game in PhotonNetwork.GetRoomList()) {
-				Debug.Log (game.name);
-				Debug.Log (game.PlayerCount);
-				Debug.Log (game.MaxPlayers);
-			}
-			Debug.Log ("Room info end...");
-			if (ViewRoomsPanel != null)
-			{
-				ToggleUI (ViewRoomsPanel);
-			}
-		}
-
-		private void ToggleHostRoomUI()
+		private void ActivateHostRoomUI()
 		{
 			if (CreateHostRoomPanel != null)
-			{
-				ToggleUI (CreateHostRoomPanel);
-			}
+				ActivateUI(CreateHostRoomPanel);
+
 		}
 
-		private void ToggleHostingRoomUI()
+		private void ActivateHostingRoomUI()
 		{
-			if (HostingRoomPanel != null)
-			{
-				if (string.IsNullOrEmpty(HostingRoomName.text))
-					HostingRoomText.text = "Untitled";
+			if (HostingRoomPanel != null) {
+				if (string.IsNullOrEmpty(HostingRoomNameInput.text))
+					HostingRoomName.text = "Untitled";
 				else
-					HostingRoomText.text = HostingRoomName.text;
-				ToggleUI (HostingRoomPanel);
+					HostingRoomName.text = HostingRoomNameInput.text;
+				DoConnect();
+				Srv.HostRoom(HostingRoomName.text);
+				ActivateUI (HostingRoomPanel);
 			}
 		}
 
-		private void ToggleJoinedRoomUI()
+		private void ActivateViewRoomsUI()
+		{
+			Srv.Connect ("Player-2343");
+			if (ViewRoomsPanel != null)
+				ActivateUI (ViewRoomsPanel);
+		}
+			
+
+		private void ActivateJoinedRoomUI()
 		{
 			if (JoinedRoomPanel != null)
-			{
-				ToggleUI (JoinedRoomPanel);
-			}
+				ActivateUI (JoinedRoomPanel);
+			
 		}
 
 		private void GoBack()
@@ -161,9 +172,22 @@ namespace GameUiNs
 			// Hide back button if at menu
 			if (UIStack.Peek () == MainMenuPanel)
 				BackBtn.gameObject.SetActive (false);
+
+			// If in view rooms panel delete all room buttons
+			if (currentUI == ViewRoomsPanel) {
+				DeleteViewRooms ();
+				Srv.Disconnect ();
+			}
+			// Disconnect from photon if...
+			// TODO add confirmation from leaving host room
+			if (currentUI == HostingRoomPanel) {
+				Debug.Log ("PUT CONFIRMATION MESSAGE HERE");
+				Srv.Disconnect ();
+			}
+
 		}
 
-		private void ToggleUI(GameObject UIToToggle)
+		private void ActivateUI(GameObject UIToActivate)
 		{
 			// Show back button if last state was menu
 			if (UIStack.Peek () == MainMenuPanel)
@@ -171,27 +195,23 @@ namespace GameUiNs
 			// Hides currentUI
 			GameObject currentUI = (GameObject) UIStack.Peek ();
 			currentUI.SetActive (false);
-			UIStack.Push (UIToToggle);
-			UIToToggle.SetActive (!UIToToggle.activeSelf);
-			
+			UIStack.Push (UIToActivate);
+			UIToActivate.SetActive (!UIToActivate.activeSelf);
+
 		}
 
         #region >> Environment Scanning
         
-        private void EnvironmentScanningClick()
+        private void EnvironmentScanningClick() //TODO Update
         {
-            if (isScanning)
-            {
+            if (isScanning) {
                 EnvironmentScannerController.Instance.FinishScanning(EnvironmentScanningFinish, EnvironmentScanningProgress);
                 StartEnvironmentScaningBtn.gameObject.SetActive(false);
                 isScanning = false;
-            }
-            else
-            {
+            } else {
                 
                 var startScan = EnvironmentScannerController.Instance.StartScanning();
-                if (startScan)
-                {
+                if (startScan) {
                     FeaturesVisualizer.EnablePointcloud();
                     FlagController.Instance.InstantiateAfterDelay();
                     ServerBtn.gameObject.SetActive(false);
@@ -201,12 +221,12 @@ namespace GameUiNs
             }
         }
 
-        private void EnvironmentScanningProgress(float progress)
+        private void EnvironmentScanningProgress(float progress) // TODO Update
         {
             StatusText.text = "Saving Progress..." + (progress * 100f) + "%";
         }
         
-        private void EnvironmentScanningFinish(bool scanningRes)
+        private void EnvironmentScanningFinish(bool scanningRes) // TODO Update
         {
             StatusText.text = "Saving " + (scanningRes ? "success!" : "Error!");
             ServerBtn.gameObject.SetActive(true);
@@ -223,7 +243,7 @@ namespace GameUiNs
         }
 
         [PunRPC]
-        private void ActivateEnvironmentScanningBtnRPC()
+        private void ActivateEnvironmentScanningBtnRPC() // TODO Update
         {
             StartEnvironmentScaningBtn.gameObject.SetActive(true);
         }
@@ -232,7 +252,58 @@ namespace GameUiNs
         
         #endregion
 
+		#region Dynamic UI generation
+
+		public void GenerateViewRooms()
+		{
+			int counter = 0;
+			roomsArray = Srv.GetRooms ();
+			foreach (RoomInfo game in roomsArray) {
+				GameObject room = (GameObject)Instantiate (roomButtonPrefab);
+				int roomIndex = counter;
+				room.GetComponent<Button> ().onClick.AddListener (
+					() => {JoinRoom (roomIndex);}
+				);
+				room.GetComponent<Button> ().onClick.AddListener (ActivateJoinedRoomUI);
+
+				room.transform.GetChild(0).GetComponent<Text> ().text = game.name;
+				room.transform.GetChild(1).GetComponent<Text> ().text = game.PlayerCount + "/"+ game.MaxPlayers;
+				room.transform.parent = RoomButtonsParent.transform;
+				counter++;
+			}
+		}
+
+		void DeleteViewRooms()
+		{
+			foreach (Transform child in RoomButtonsParent.transform) {
+				GameObject.Destroy (child.gameObject);
+			}
+		}
+
+		public void UpdatePlayerAmounts(string players, string maxPlayers)
+		{
+			HostingRoomPlayers.text = players + "/" + maxPlayers;
+		}
+		#endregion
         
+		#region Networking
+
+		void DoConnect()
+		{
+			float pseudoUID = Time.realtimeSinceStartup;
+			pseudoUID = pseudoUID - Mathf.FloorToInt(pseudoUID)*1000;
+			string playerName = "Player" + Mathf.FloorToInt(pseudoUID);
+			Srv.Connect(playerName);
+		}
+
+		void JoinRoom(int roomIndex)
+		{
+			JoinedRoomName.text = roomsArray[roomIndex].name;
+			Srv.JoinRoom (roomsArray[roomIndex].name);
+		}
+
+		#endregion
+
         public void PlacenoteStatusChange(LibPlacenote.MappingStatus prevStatus, LibPlacenote.MappingStatus currStatus)
         {
             if (currStatus == LibPlacenote.MappingStatus.RUNNING && prevStatus == LibPlacenote.MappingStatus.LOST) 

@@ -2,13 +2,15 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using GameUiNs;
 
 namespace PunServerNs
 {
     public class SrvController : Photon.PunBehaviour
     {
+		public SetupUI SetupUIInstance;
 
-        [Header("Setup connection here")]
+		[Header("Setup connection here")]
         [Tooltip("Only players with same GameNetVersion and PUN version can play with each other")]
         public string GameNetVersion = "1.00";
         public string DefaultUserName = "Player1";
@@ -17,6 +19,11 @@ namespace PunServerNs
         public string RoomName = "PrototypeRoom";
         RoomOptions roomOptions ;
         TypedLobby lobby = TypedLobby.Default;
+
+		// Hosting
+		bool isHost = false;
+
+
 
         /// <summary>
         ///  Status of connection from ready to network game point of view,
@@ -63,6 +70,9 @@ namespace PunServerNs
             //dbgDoConnect = false;
 			roomOptions = new RoomOptions() { MaxPlayers = 4};
 
+			if (SetupUIInstance == null)
+				SetupUIInstance = FindObjectOfType<SetupUI>();
+
         }
 
 
@@ -86,28 +96,41 @@ namespace PunServerNs
 
        // public bool dbgDoConnect;
 
-		public void Connect(string playerName, string roomName)
+		public void Connect(string playerName)
         {
             Debug.Log("Called Connect() at state " + PhotonNetwork.connectionState);
-			RoomName = roomName;
-
-            if (PhotonNetwork.connectionState == ConnectionState.Disconnected)
-            {
+            if (PhotonNetwork.connectionState == ConnectionState.Disconnected) {
                 PhotonNetwork.playerName = playerName;
                 Debug.Log("userid "+PhotonNetwork.player.UserId);
                 // connect as defined in Photon configuration file
                 PhotonNetwork.ConnectUsingSettings(GameNetVersion);
                 SetNetState(NetGameStateId.Connecting, "Connecting started");
             }
-            else
-            {
-                PhotonNetwork.Disconnect();
-                SetNetState(NetGameStateId.Failed, "Disconnect by user");
-               
-            }
         }
 
+		public void Disconnect()
+		{
+			if (PhotonNetwork.connectionState != ConnectionState.Disconnected) {
+				PhotonNetwork.Disconnect();
+				SetNetState(NetGameStateId.Failed, "Disconnect by user");
+			}
+		}
 
+		public void HostRoom(string roomName)
+		{
+			RoomName = roomName;
+			isHost = true;
+		}
+
+		public void JoinRoom(string roomName)
+		{
+			PhotonNetwork.JoinRoom (roomName);
+		}
+
+		public RoomInfo[] GetRooms()
+		{
+			return PhotonNetwork.GetRoomList ();
+		}
 
         public void Subscribe(Action<NetGameStateId, string> onNetStateChanged)
         {
@@ -146,8 +169,10 @@ namespace PunServerNs
         public override void OnJoinedLobby()
         {
             Debug.Log("--------- OnJoinedLobby: ------------------------");
-			Debug.Log (PhotonNetwork.insideLobby);
-            PhotonNetwork.JoinOrCreateRoom(RoomName, roomOptions, lobby);
+			// TODO remove the auto createRoom
+            //PhotonNetwork.JoinOrCreateRoom(RoomName, roomOptions, lobby);
+			if (isHost)
+				PhotonNetwork.CreateRoom (RoomName, roomOptions, lobby);
             SetNetState(NetGameStateId.Connecting, "Joined Lobby");
         }
 
@@ -173,6 +198,9 @@ namespace PunServerNs
                 (PhotonNetwork.room == null ? "null" : PhotonNetwork.room.Name) );
 			Debug.Log (PhotonNetwork.GetRoomList ());
 			Debug.Log (PhotonNetwork.insideLobby);
+			// Update player amounts
+			SetupUIInstance.UpdatePlayerAmounts(PhotonNetwork.room.PlayerCount.ToString(), PhotonNetwork.room.MaxPlayers.ToString());
+
         }
 
         public override void OnDisconnectedFromPhoton()
@@ -185,6 +213,7 @@ namespace PunServerNs
         {
             Debug.Log("-------- OnLeftRoom --------------");
             SetNetState(NetGameStateId.Disconnected, "Left room");
+			isHost = false;
         }
 
         public override void OnReceivedRoomListUpdate()
@@ -193,7 +222,9 @@ namespace PunServerNs
             {
                 Debug.Log("0000000000  " + room.Name + " 0000000");
             }
-
+			// Generate buttons for viewRoomsPanel
+			if(!isHost)
+				SetupUIInstance.GenerateViewRooms ();
         }
 
         

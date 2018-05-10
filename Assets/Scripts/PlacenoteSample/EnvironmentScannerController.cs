@@ -18,7 +18,7 @@ namespace Placenote
 	    public Text PlacenoteStatusText;
 	    public UnityEvent OnARKitInitialized = new UnityEvent();
 	    public PlacenoteStatusChangeEvent OnPlacenoteStatusChange = new PlacenoteStatusChangeEvent();
-	    public SetupButtons SetupButtons;
+	    public SetupUI SetupButtons;
 
 	    public string LatestMapId;
 	    
