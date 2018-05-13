@@ -19,6 +19,13 @@ Register for a Free Photon Multiplayer Account and place your account's "AppId" 
 
 <img width="1101" alt="photon appid" src="https://user-images.githubusercontent.com/13069075/38306822-9d5942ca-37c6-11e8-95ee-387d4eb2a614.png">
 
+Register for a free Placenote account and get your api key here: https://developer.placenote.com. To Add your Placenote API key, find the ARCameraManager object in the Scene hierarchy and add your API key under the LibPlacenote component in the Inspector Panel.
+
+Build the Unity project by Switching Platform to iOS in the Build Settings and click build to generate the XCode project. To build and run the XCode, follow the instructions on this page:
+https://placenote.com/install/unity/build-xcode/
+
+***Playing the Game:
+
 Step 1.): open Placenote Invaders on both phones,
 
 Step 2.) Player 1 and PLayer 2 must tap the top left "Multiplayer Button" (3 horizontal lines) and press the the "connect" button on right of the Multiplayer Screen to join the "PrototypeRoom".  *Note, both players must be connected to the Prototype Room before Player 1 scans the room.
