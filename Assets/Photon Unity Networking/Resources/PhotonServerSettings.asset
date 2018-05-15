@@ -49,4 +49,7 @@ MonoBehaviour:
   - TaggedPlayer
   - ScanningStarted
   - ActivateEnvironmentScanningBtnRPC
+  - LeaveRoom
+  - KickPlayer
+  - PrepareGame
   DisableAutoOpenWizard: 1

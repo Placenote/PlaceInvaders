@@ -17,7 +17,7 @@ namespace GameplayNs
         public bool IsPlayerDead;
 
 
-        public void Reset()
+        public void Reset ()
         {
             Lifes = 0;
             Kills = 0;
@@ -27,7 +27,7 @@ namespace GameplayNs
 
     public enum GameStateId
     {
-        GameWaintingStart = 0,
+        GameWaitingStart = 0,
         GamePlaying,
         GameOver
     }
@@ -39,17 +39,20 @@ namespace GameplayNs
     [System.Serializable]
     public class GameData
     {
-        public GameStateId GameState = GameStateId.GameWaintingStart;
+        public GameStateId GameState = GameStateId.GameWaitingStart;
 
         #region Events section
         public enum SomethingId
         {
-            WorldRootPlaced,
+			WorldRootPlaced,
             AskToStartGame,
+			GamePreparing,
             GameStart,
+			ToggleGameMenu,
             PlayerDied,
             PlayerResurrected,
             GameOver, 
+			ToMainMenu,
         }
 
         // ---------------------------------------------------------------------------
@@ -64,38 +67,55 @@ namespace GameplayNs
         // so should be received after changing the state of component.
         // ---------------------------------------------------------------------------
         public event Action<SomethingId> NotifySomethingHappened =  //delegate { };
-             ((id) =>  Debug.Log("Sent " + id)  );
+             ( (id) =>  Debug.Log ("Sent " + id)  );
         public event Action NotifySomeDataChanged = delegate { };
 
 
 
         #endregion Events section
 
-        public void Reset()
+        public void Reset ()
         {
-            PlayerData.Reset();
+            PlayerData.Reset ();
         }
 
-        public void OnStartGame()
+		public void OnPrepareGame ()
+		{
+			GameState = GameStateId.GameWaitingStart;
+			NotifySomethingHappened (SomethingId.GamePreparing);
+			NotifySomeDataChanged ();
+		}
+
+        public void OnStartGame ()
         {
             GameState = GameStateId.GamePlaying;
-            NotifySomethingHappened(SomethingId.GameStart);
-            NotifySomeDataChanged();
-
+            NotifySomethingHappened (SomethingId.GameStart);
+            NotifySomeDataChanged ();
         }
+
+		public void TogglePlayerMenu ()
+		{
+			NotifySomethingHappened (SomethingId.ToggleGameMenu);
+		}
+
+		public void OnToMainMenu ()
+		{
+			GameState = GameStateId.GameWaitingStart;
+			NotifySomethingHappened (SomethingId.ToMainMenu);
+		}
 
         /// <summary>
         /// Call DoNotifySomethingHappened action outside of this class
         /// </summary>
         /// <param name="id"></param>
-        public void NotifyWorldRootPlaced()
+        public void NotifyWorldRootPlaced ()
         {
-            NotifySomethingHappened(SomethingId.WorldRootPlaced);
+            NotifySomethingHappened (SomethingId.WorldRootPlaced);
         }
 
         #region data section, add new here
-        [Tooltip("public just for debug purposes")]
-        public OnePlayerData PlayerData = new OnePlayerData();
+        [Tooltip ("public just for debug purposes")]
+        public OnePlayerData PlayerData = new OnePlayerData ();
 
 
         #endregion data section, add new here
@@ -108,39 +128,35 @@ namespace GameplayNs
         public int Kills
         {
             get { return PlayerData.Kills; }
-            set { PlayerData.Kills = value; NotifySomeDataChanged(); }
+            set { PlayerData.Kills = value; NotifySomeDataChanged (); }
         }
 
-        public bool ResurrectPlayer()
+        public bool ResurrectPlayer ()
         {
             if (PlayerData.Lifes == 0 || !PlayerData.IsPlayerDead)
                 return false;
 
             PlayerData.Lifes--;
             PlayerData.IsPlayerDead = false;
-            NotifySomethingHappened(SomethingId.PlayerResurrected);
-            NotifySomeDataChanged();
+            NotifySomethingHappened (SomethingId.PlayerResurrected);
+            NotifySomeDataChanged ();
             return true;
         }
 
-        public void RegisterPlayerDeath()
+        public void RegisterPlayerDeath ()
         {
             PlayerData.IsPlayerDead = true;
-            NotifySomethingHappened(SomethingId.PlayerDied);
-            NotifySomeDataChanged();
+            NotifySomethingHappened (SomethingId.PlayerDied);
+            NotifySomeDataChanged ();
 
-            if (PlayerData.Lifes == 0)
-            {
-                NotifySomethingHappened(SomethingId.GameOver);
+            if (PlayerData.Lifes == 0) {
+                NotifySomethingHappened (SomethingId.GameOver);
             }
         }
 
         public bool IsPlayerDead
         {
-            get
-            {
-                return PlayerData.IsPlayerDead;
-            }
+            get { return PlayerData.IsPlayerDead; }
            
         }
 
@@ -151,7 +167,7 @@ namespace GameplayNs
             set
             {
                 PlayerData.Lifes = (value <0? 0: value);
-                NotifySomeDataChanged();
+                NotifySomeDataChanged ();
             }
         }
         #endregion properties section, add new here

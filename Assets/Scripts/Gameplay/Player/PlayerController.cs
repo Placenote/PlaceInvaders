@@ -95,8 +95,10 @@ namespace PlayerNs
             transform.parent = GameController.WorldRootObject.transform;
             GameController.RegisterPlayer(this);
 
+			//TODO Check why this throw error
+			/*
             if ((!PhotonNetwork.offlineMode || PhotonNetwork.connected) && photonView.isMine)
-                photonView.RPC("SetCubeColor", PhotonTargets.All, Random.ColorHSV(0, 255, 0, 255, 0, 255, 200, 255));   
+                photonView.RPC("SetCubeColor", PhotonTargets.All, Random.ColorHSV(0, 255, 0, 255, 0, 255, 200, 255));   */
         }
 
         [PunRPC]

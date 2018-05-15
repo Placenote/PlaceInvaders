@@ -16,8 +16,8 @@ namespace Placenote
     public class EnvironmentScannerController : MonoBehaviour, PlacenoteListener
     {
 	    public Text PlacenoteStatusText;
-	    public UnityEvent OnARKitInitialized = new UnityEvent();
-	    public PlacenoteStatusChangeEvent OnPlacenoteStatusChange = new PlacenoteStatusChangeEvent();
+	    public UnityEvent OnARKitInitialized = new UnityEvent ();
+	    public PlacenoteStatusChangeEvent OnPlacenoteStatusChange = new PlacenoteStatusChangeEvent ();
 	    public SetupUI SetupButtons;
 
 	    public string LatestMapId;
@@ -39,10 +39,10 @@ namespace Placenote
 		    get
 		    {
 			    if (instance == null)
-				    instance = FindObjectOfType<EnvironmentScannerController>();
+				    instance = FindObjectOfType<EnvironmentScannerController> ();
 			    
-			    if(instance == null)
-				    instance = new GameObject("EnvironmentScannerController").AddComponent<EnvironmentScannerController>();
+			    if (instance == null)
+				    instance = new GameObject ("EnvironmentScannerController").AddComponent<EnvironmentScannerController> ();
 
 			    return instance;
 		    }
@@ -65,19 +65,17 @@ namespace Placenote
 	    /// if scanning started return true
 	    /// </summary>
 	    /// <returns></returns>
-	    public bool StartScanning()
+	    public bool StartScanning ()
 	    {
-		    if (!LibPlacenote.Instance.Initialized()) 
-		    {
+		    if (!LibPlacenote.Instance.Initialized ()) {
 			    Debug.Log ("SDK not yet initialized");
 			    return false;
 		    }
 	
 		    
-		    if(!PhotonNetwork.offlineMode || PhotonNetwork.connected)
-		    {
+		    if (!PhotonNetwork.offlineMode || PhotonNetwork.connected) {
 			    var photonView = GetComponent<PhotonView>();
-			    photonView.RPC("ScanningStarted", PhotonTargets.Others);	    
+			    photonView.RPC ("ScanningStarted", PhotonTargets.Others);	    
 		    }
 		  
 		    LibPlacenote.Instance.StartSession ();
@@ -85,9 +83,7 @@ namespace Placenote
 	    }
 
 	    [PunRPC]
-	    private void ScanningStarted()
-	    {
-		    SetupButtons.StartEnvironmentScaningBtn.gameObject.SetActive(false);
+	    private void ScanningStarted () {
 		    SetupButtons.StatusText.text = "Wait while first player finish environment scanning!";
 	    }
 	    
@@ -96,37 +92,35 @@ namespace Placenote
 /// </summary>
 /// <param name="onSavingFinish"></param>
 /// <param name="onSavingProgress"></param>
-	    public void FinishScanning(Action<bool> onSavingFinish, Action<float> onSavingProgress)
+	    public void FinishScanning (Action<bool> onSavingFinish, Action<float> onSavingProgress)
 	    {
 		    LibPlacenote.Instance.SaveMap (
 			    (mapId) =>
 			    {
 				    PlacenoteStatusText.text = "Set Latest Map ID - " + mapId;
-				    var photonView = GetComponent<PhotonView>();
+				    var photonView = GetComponent<PhotonView> ();
 				    if (PhotonNetwork.offlineMode || !PhotonNetwork.connected)
 					    LatestMapId = mapId;
 				    else
-					    photonView.RPC("SetLatestMapId", PhotonTargets.All, mapId);
+					    photonView.RPC ("SetLatestMapId", PhotonTargets.All, mapId);
 			    },
 			    (completed, faulted, percentage) =>
 			    {
-				    if (!completed && !faulted)
-				    {
-					    onSavingProgress.Invoke(percentage);
+				    if (!completed && !faulted) {
+					    onSavingProgress.Invoke (percentage);
 				    }
-				    else
-				    {
-					    onSavingFinish.Invoke(!faulted);
+				    else {
+					    onSavingFinish.Invoke (!faulted);
 				    }
 			    });
 	    }
 
 	    [PunRPC]
-	    private void SetLatestMapId(string id)
+	    private void SetLatestMapId (string id)
 	    {
 		    PlacenoteStatusText.text = "RPC Set Map ID - " + id;
 		    LatestMapId = id;
-		    SetupButtons.StartEnvironmentScaningBtn.gameObject.SetActive(false);
+		   // SetupButtons.StartEnvironmentScaningBtn.gameObject.SetActive(false); //TODO check if this is needed
 	    }
 	    
 	    /// <summary>
@@ -135,15 +129,14 @@ namespace Placenote
 	    /// </summary>
 	    /// <param name="mapsLoaded"></param>
 	    /// <returns></returns>
-	    public bool GetMapsCount(Action<LibPlacenote.MapInfo[]> mapsLoaded)
+	    public bool GetMapsCount (Action<LibPlacenote.MapInfo[]> mapsLoaded)
 	    {
-		    if (!LibPlacenote.Instance.Initialized()) 
-		    {
+		    if (!LibPlacenote.Instance.Initialized ()) {
 			    Debug.Log ("SDK not yet initialized");
 			    return false;
 		    }
 		    
-		    LibPlacenote.Instance.ListMaps(mapsLoaded);
+		    LibPlacenote.Instance.ListMaps (mapsLoaded);
 		    return true;
 	    }
 	    /// <summary>
@@ -153,16 +146,14 @@ namespace Placenote
 	    /// <param name="mapLoadingFail"></param>
 	    /// <param name="onLoadingPercentage"></param>
 	    /// <returns></returns>
-	    public bool LoadLatestMap(Action<string> mapLoaded, Action<string> mapLoadingFail, Action<float> onLoadingPercentage)
+	    public bool LoadLatestMap (Action<string> mapLoaded, Action<string> mapLoadingFail, Action<float> onLoadingPercentage)
 	    {
-		    if (!LibPlacenote.Instance.Initialized()) 
-		    {
+		    if (!LibPlacenote.Instance.Initialized ()) {
 			    Debug.Log ("SDK not yet initialized");
 			    return false;
 		    }
 
-		    if (string.IsNullOrEmpty(LatestMapId))
-		    {
+		    if (string.IsNullOrEmpty (LatestMapId)) {
 			    Debug.Log ("Can't find Map!");
 			    return false;
 		    }
@@ -170,18 +161,14 @@ namespace Placenote
 		    LibPlacenote.Instance.LoadMap (LatestMapId,
 			    (completed, faulted, percentage) => 
 			    {
-				    if (completed)
-				    {
+				    if (completed) {
 					    LibPlacenote.Instance.StartSession ();
-					    mapLoaded.Invoke(LatestMapId);
+					    mapLoaded.Invoke (LatestMapId);
 				    } 
-				    else if (faulted) 
-				    {
-					    mapLoadingFail.Invoke(LatestMapId);
-				    }
-				    else
-				    {
-					    onLoadingPercentage.Invoke(percentage);
+				    else if (faulted) {
+					    mapLoadingFail.Invoke (LatestMapId);
+				    } else {
+					    onLoadingPercentage.Invoke (percentage);
 				    }
 			    }
 		    );
@@ -191,7 +178,7 @@ namespace Placenote
 		/// <summary>
 		/// Stop Placenote session
 		/// </summary>
-	    public void StopUsingMap()
+	    public void StopUsingMap ()
 	    {
 		    LibPlacenote.Instance.StopSession ();
 	    }
@@ -203,9 +190,9 @@ namespace Placenote
 	    /// <param name="onDeleteFinish"></param>
 	    /// <param name="onDeletingMap"></param>
 	    /// <returns></returns>
-	    public bool DeleteAllMaps(Action<bool> onDeleteFinish, Action<string> onDeletingMap)
+	    public bool DeleteAllMaps (Action<bool> onDeleteFinish, Action<string> onDeletingMap)
 	    {
-		    if (!LibPlacenote.Instance.Initialized()) 
+		    if (!LibPlacenote.Instance.Initialized ()) 
 		    {
 			    Debug.Log ("SDK not yet initialized");
 			    return false;
@@ -213,31 +200,28 @@ namespace Placenote
 		    
 		    LibPlacenote.Instance.ListMaps((maps) =>
 		    {
-			    if (maps.Length == 0)
-			    {
-				    onDeleteFinish.Invoke(true);
+			    if (maps.Length == 0) {
+				    onDeleteFinish.Invoke (true);
 				    return;
 			    }
 			    
 			    var mapsCount = maps.Length;
 			    var deletedCount = 0f;
-			    var failToDelete = new List<LibPlacenote.MapInfo>();
+			    var failToDelete = new List<LibPlacenote.MapInfo> ();
 			    
-			    foreach (var map in maps)
-			    {
-				    onDeletingMap.Invoke(map.placeId);
+			    foreach (var map in maps) {
+				    onDeletingMap.Invoke (map.placeId);
 				    LibPlacenote.Instance.DeleteMap (map.placeId, (deleted, errMsg) => {
-					    if (deleted)
-					    {
+					    if (deleted) {
 						    deletedCount++;
 					    } else {
-						    failToDelete.Add(map);
+						    failToDelete.Add (map);
 					    }
 					    
-					    if(deletedCount == mapsCount)
-						    onDeleteFinish.Invoke(true);
-					    else if(deletedCount + failToDelete.Count == mapsCount)
-						    onDeleteFinish.Invoke(false);
+					    if (deletedCount == mapsCount)
+						    onDeleteFinish.Invoke (true);
+					    else if (deletedCount + failToDelete.Count == mapsCount)
+						    onDeleteFinish.Invoke (false);
 				    });
 			    }
 		    });
@@ -313,20 +297,16 @@ namespace Placenote
 		{
 			OnPlacenoteStatusChange.Invoke(prevStatus, currStatus);
 			
-			if (currStatus == LibPlacenote.MappingStatus.RUNNING && prevStatus == LibPlacenote.MappingStatus.LOST) 
-			{
+			if (currStatus == LibPlacenote.MappingStatus.RUNNING && prevStatus == LibPlacenote.MappingStatus.LOST) {
 				Debug.Log("RUNNING");
 			} 
-			else if (currStatus == LibPlacenote.MappingStatus.RUNNING && prevStatus == LibPlacenote.MappingStatus.WAITING) 
-			{
+			else if (currStatus == LibPlacenote.MappingStatus.RUNNING && prevStatus == LibPlacenote.MappingStatus.WAITING) {
 				Debug.Log("Mapping");
 			} 
-			else if (currStatus == LibPlacenote.MappingStatus.LOST) 
-			{
+			else if (currStatus == LibPlacenote.MappingStatus.LOST) {
 				Debug.Log("Searching for position lock");
 			} 
-			else if (currStatus == LibPlacenote.MappingStatus.WAITING) 
-			{
+			else if (currStatus == LibPlacenote.MappingStatus.WAITING) {
 			}
 		}
     }

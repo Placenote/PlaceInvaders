@@ -13,9 +13,9 @@ namespace EnemiesNs
         public string DamageReceiverMethodName = "Damage";
 
         public List<EnemyDef> Definitions;
-        public EnemyDef GetRandomEnemy()
+        public EnemyDef GetRandomEnemy ()
         {
-            int idx = Random.Range(0, Definitions.Count);
+            int idx = Random.Range (0, Definitions.Count);
             return Definitions[idx];
         }
     }

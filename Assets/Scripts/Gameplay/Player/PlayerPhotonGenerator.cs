@@ -60,16 +60,25 @@ namespace PlayerNs
 
         virtual protected void NotifySomethingHappened(GameData.SomethingId id)
         {
-            if (id == GameData.SomethingId.GameStart)
-                OnGameStart();
-            else if (id == GameData.SomethingId.GameOver && Player != null)
-            {
-                if (PhotonNetwork.offlineMode || !PhotonNetwork.connected)
-                    Destroy(Player.gameObject);
-                else
-                    Network.Destroy(Player.gameObject);
-            }
-
+			if (id == GameData.SomethingId.GamePreparing)
+				OnGameStart (); //TODO Fix running OnGameStart twice
+            //if (id == GameData.SomethingId.GameStart)
+                //OnGameStart();
+            else if (id == GameData.SomethingId.GameOver && Player != null) {
+				if (PhotonNetwork.offlineMode || !PhotonNetwork.connected)
+					Destroy (Player.gameObject);
+				else
+					Network.Destroy (Player.gameObject);
+			} 
+			else if (id == GameData.SomethingId.ToMainMenu && Player != null) {
+				if (PhotonNetwork.offlineMode || !PhotonNetwork.connected) {
+					Destroy (Player.gameObject);
+				} else { 
+					GameController.RemovePlayer (Player);
+					//Destroy (Player.gameObject);
+					PhotonNetwork.Destroy (Player.gameObject);
+				}
+			}
 
         }
         #endregion event handlers to override

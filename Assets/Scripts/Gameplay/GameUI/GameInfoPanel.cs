@@ -11,29 +11,34 @@ namespace GameUiNs
         public Text Lifes;
         public Text Kills;
         public Button Heart;
-        public Button Info;
+        public Button MenuBtn;
 
-        private void Start()
+        private void Start ()
         {
-            Heart.onClick.AddListener( () => GameController.Data.ResurrectPlayer());
-            //Heart.interactable = false;
+            Heart.onClick.AddListener ( () => GameController.Data.ResurrectPlayer ());
+			MenuBtn.onClick.AddListener (ToggleMenu);
         }
 
-        override protected void NotifySomeDataChanged()
+        override protected void NotifySomeDataChanged ()
         {
-            Kills.text = GameController.Data.Kills.ToString("D3");
-            Lifes.text = GameController.Data.Lifes.ToString("D2");
+            Kills.text = GameController.Data.Kills.ToString ("D3");
+            Lifes.text = GameController.Data.Lifes.ToString ("D2");
         }
 
-        protected override void NotifySomethingHappened(GameData.SomethingId id)
+        protected override void NotifySomethingHappened (GameData.SomethingId id)
         {
           // if(id == GameData.SomethingId.GameStart)
           //      Heart.interactable = true;
         }
 
-        protected override void Update()
+        protected override void Update ()
         {
-            base.Update();
+            base.Update ();
         }
+
+		private void ToggleMenu ()
+		{
+			GameController.Data.TogglePlayerMenu ();
+		}
     }
 }
