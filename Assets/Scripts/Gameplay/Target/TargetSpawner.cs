@@ -45,11 +45,11 @@ namespace TargetNs
 	    public void InstantiateFlag()
 	    {
 			if (flagObject == null) {
-				flagObject = Instantiate (FlagPrefab, new Vector3 (0f, -2f, 2f), Quaternion.identity);
-				flagObject.transform.parent = gameObject.transform;
+//				flagObject = Instantiate (FlagPrefab, new Vector3 (0f, -2f, 2f), Quaternion.identity);
+				//flagObject.transform.parent = gameObject.transform;
 			}
 	        
-	        flagObject.transform.localScale = new Vector3(0.25f, 0.25f, 0.25f);
+	       // flagObject.transform.localScale = new Vector3(0.25f, 0.25f, 0.25f);
 	    }
 
 

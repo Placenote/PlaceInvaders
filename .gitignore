@@ -41,3 +41,7 @@ sysinfo.txt
 
 # iOS Related macros
 *.DS_Store
+
+# JSON local storage of simulator maps
+jsonMaps.json
+jsonMaps.json.meta

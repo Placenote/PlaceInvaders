@@ -109,7 +109,7 @@ namespace ARKitSupportNs
                 }
             }
 #else
-		/*	if (Input.touchCount > 0 && m_HitTransform != null)
+			if (Input.touchCount > 0 && m_HitTransform != null)
 			{
 				var touch = Input.GetTouch(0);
 				if (touch.phase == TouchPhase.Began || touch.phase == TouchPhase.Moved)
@@ -122,13 +122,13 @@ namespace ARKitSupportNs
 
                     // prioritize reults types
                     ARHitTestResultType[] resultTypes = {
-                        ARHitTestResultType.ARHitTestResultTypeExistingPlaneUsingExtent, 
+                        ARHitTestResultType.ARHitTestResultTypeExistingPlaneUsingExtent,
                         // if you want to use infinite planes use this:
                         //ARHitTestResultType.ARHitTestResultTypeExistingPlane,
-                        ARHitTestResultType.ARHitTestResultTypeHorizontalPlane, 
+                        ARHitTestResultType.ARHitTestResultTypeHorizontalPlane,
                         ARHitTestResultType.ARHitTestResultTypeFeaturePoint
-                    }; 
-					
+                    };
+
                     foreach (ARHitTestResultType resultType in resultTypes)
                     {
                         if (HitTestWithResultType (point, resultType))
@@ -138,7 +138,7 @@ namespace ARKitSupportNs
                         }
                     }
 				}
-			}*/
+			}
 #endif
 
         }
@@ -146,4 +146,3 @@ namespace ARKitSupportNs
 
     }
 }
-

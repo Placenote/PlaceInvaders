@@ -18,7 +18,7 @@ namespace Placenote
 	    public Text PlacenoteStatusText;
 	    public UnityEvent OnARKitInitialized = new UnityEvent ();
 	    public PlacenoteStatusChangeEvent OnPlacenoteStatusChange = new PlacenoteStatusChangeEvent ();
-	    public SetupUI SetupButtons;
+	    public SetupUI SetupUI;
 
 	    public string LatestMapId;
 	    
@@ -49,7 +49,7 @@ namespace Placenote
 	    }
 	    private static EnvironmentScannerController instance = null;
 	    
-	    #endregion
+		#endregion > Singleton
 	    
 		private void Start ()
 		{
@@ -73,9 +73,9 @@ namespace Placenote
 		    }
 	
 		    
-		    if (!PhotonNetwork.offlineMode || PhotonNetwork.connected) {
+		    if (PhotonNetwork.connected) {
 			    var photonView = GetComponent<PhotonView>();
-			    photonView.RPC ("ScanningStarted", PhotonTargets.Others);	    
+				photonView.RPC ("ScanningStarted", PhotonTargets.Others);	  
 		    }
 		  
 		    LibPlacenote.Instance.StartSession ();
@@ -84,14 +84,14 @@ namespace Placenote
 
 	    [PunRPC]
 	    private void ScanningStarted () {
-		    SetupButtons.StatusText.text = "Wait while first player finish environment scanning!";
+		    SetupUI.HelperText.text = "Wait while host maps the area!";
 	    }
-	    
-/// <summary>
-/// Complete the scan of the environment, save the scanned map, and synchronize this map with all clients
-/// </summary>
-/// <param name="onSavingFinish"></param>
-/// <param name="onSavingProgress"></param>
+		    
+		/// <summary>
+		/// Complete the scan of the environment, save the scanned map, and synchronize this map with all clients
+		/// </summary>
+		/// <param name="onSavingFinish"></param>
+		/// <param name="onSavingProgress"></param>
 	    public void FinishScanning (Action<bool> onSavingFinish, Action<float> onSavingProgress)
 	    {
 		    LibPlacenote.Instance.SaveMap (
@@ -99,10 +99,10 @@ namespace Placenote
 			    {
 				    PlacenoteStatusText.text = "Set Latest Map ID - " + mapId;
 				    var photonView = GetComponent<PhotonView> ();
-				    if (PhotonNetwork.offlineMode || !PhotonNetwork.connected)
-					    LatestMapId = mapId;
-				    else
-					    photonView.RPC ("SetLatestMapId", PhotonTargets.All, mapId);
+					if(PhotonNetwork.connected)
+						photonView.RPC ("SetLatestMapId", PhotonTargets.All, mapId);
+					else
+						LatestMapId = mapId;					   
 			    },
 			    (completed, faulted, percentage) =>
 			    {
@@ -118,7 +118,7 @@ namespace Placenote
 	    [PunRPC]
 	    private void SetLatestMapId (string id)
 	    {
-		    PlacenoteStatusText.text = "RPC Set Map ID - " + id;
+			PlacenoteStatusText.text = "RPC Set Map ID - " + id;
 		    LatestMapId = id;
 		   // SetupButtons.StartEnvironmentScaningBtn.gameObject.SetActive(false); //TODO check if this is needed
 	    }
@@ -148,7 +148,7 @@ namespace Placenote
 	    /// <returns></returns>
 	    public bool LoadLatestMap (Action<string> mapLoaded, Action<string> mapLoadingFail, Action<float> onLoadingPercentage)
 	    {
-		    if (!LibPlacenote.Instance.Initialized ()) {
+			if (!LibPlacenote.Instance.Initialized ()) {
 			    Debug.Log ("SDK not yet initialized");
 			    return false;
 		    }

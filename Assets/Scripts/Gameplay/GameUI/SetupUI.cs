@@ -14,8 +14,7 @@ namespace GameUiNs
     public class SetupUI : MonoBehaviour
     {
 		public SrvController Srv;
-		public Text StatusText; // TODO figure out what to do with this
-
+		 
 		#region Main UI Elements
 
 		// Stack to keep track of current UI layer
@@ -26,7 +25,6 @@ namespace GameUiNs
 		public Button JoinGameBtn;
 		public Button HostGameBtn;
 		public Button SinglePlayerBtn;
-		// TODO ADD SINGLEPLAYER
 
 		// Back Button.
 		public Button BackBtn;
@@ -34,15 +32,18 @@ namespace GameUiNs
 		// Loading Circle
 		public GameObject LoadingCircle;
 
+		// Text to guide user
+		public Text HelperText;
+
 		// Host a room panel.
 		public GameObject CreateHostRoomPanel;
 		public InputField HostingRoomNameInput;
-		public Text HostingRoomName;
 		public Button HostRoomBtn;
 
 		// Inside hosted room
 		public GameObject HostingRoomPanel;
 		public Button StartGameBtn;
+		public Text HostingRoomName;
 		public Text HostingRoomPlayers;
 		public GameObject LeavingHostingRoomConfirmationPanel;
 		public Button LeaveBtn;
@@ -60,6 +61,9 @@ namespace GameUiNs
 		public GameObject JoinedRoomPanel;
 		public Text JoinedRoomName;
 		public Text JoinedRoomPlayers;
+
+		// Mapping/scanning finish button
+		public Button ScanningFinishBtn;
 
 		#endregion Main UI Elements
 
@@ -81,17 +85,17 @@ namespace GameUiNs
 			// Hosting path
 			HostGameBtn.onClick.AddListener (ActivateHostRoomUI);
 			HostRoomBtn.onClick.AddListener (ActivateHostingRoomUI);
-			StartGameBtn.onClick.AddListener (EnvironmentScanningClick);
+			StartGameBtn.onClick.AddListener (EnvironmentScanningStart);
 			LeaveBtn.onClick.AddListener (LeavingHostingRoomConfirmation);
 			StayBtn.onClick.AddListener (LeavingHostingRoomCancel);
 			ConfirmBtn.onClick.AddListener (FailToCreateRoomConfirm);
+			ScanningFinishBtn.onClick.AddListener (EnvironmentScanningEnd);
 
 			// Joining path
 			JoinGameBtn.onClick.AddListener (ActivateViewRoomsUI);
 		
-
 			// SinglePlayer path
-			SinglePlayerBtn.onClick.AddListener (EnvironmentScanningClick);
+			SinglePlayerBtn.onClick.AddListener (EnvironmentScanningStart);
 
 			// Adding MainMenu to UIStack
 			UIStack.Push (MainMenuPanel);
@@ -100,19 +104,7 @@ namespace GameUiNs
 			Srv.Subscribe( OnConnectionStateChaged);
 
 			Initialize ();
-			//TODO DELETE THIS
-			Screen.SetResolution (750, 1334, false);
         }
-
-		#region Debug
-
-		void Update ()
-		{
-			//Debug.Log (PhotonNetwork.playerList.Length);
-
-		}
-
-		#endregion Debug
 
 		public void Initialize ()
 		{
@@ -124,44 +116,40 @@ namespace GameUiNs
 			ViewRoomsPanel.SetActive (false);
 			JoinedRoomPanel.SetActive (false);
 			Srv.IsLeavingHostedRoom = false;
+			HelperText.text = "";
 		}
 
         #region > Buttons On Click Events
         
-        #region >> Start Game
+		#region >> Loading Map 
         
-        public void OnStartGameClick () // TODO UPDATE
+        public void StartLoadingMap ()
         {
             if (string.IsNullOrEmpty(EnvironmentScannerController.Instance.LatestMapId)) {
-                StatusText.text = "Error! Can't find Environment Scan!";
+                HelperText.text = "Error! Can't find Environment Scan!";
                 return;
             }
-
             var res = EnvironmentScannerController.Instance.LoadLatestMap(LatestMapLoaded, MapLoadingFail, MapLoadingPercentage);
-
-            if (res) {
-                StartGameBtn.gameObject.SetActive (false);
-            }
         }
 
-        private void LatestMapLoaded(string mapId) // TODO UPDATE
+        private void LatestMapLoaded(string mapId)
         {
-            StatusText.text = "Map Loaded Succesfully!";
+            HelperText.text = "Map Loaded Succesfully!";
             EnvironmentScannerController.Instance.OnPlacenoteStatusChange.AddListener (PlacenoteStatusChange);
         }
         
         private void MapLoadingFail (string mapId) // TODO UPDATE
         {
-            StatusText.text = "Map Loading Fail!";
-            StartGameBtn.gameObject.SetActive (true);
+            HelperText.text = "Map Loading Fail!";
+            // StartGameBtn.gameObject.SetActive (true);
         }
 
         private void MapLoadingPercentage (float percentage) //TODO UPDATE
         {
-            StatusText.text = "Loading Map..." + (percentage * 100f) + "%";
+            HelperText.text = "Loading Map..." + (percentage * 100f) + "%";
         }
         
-        #endregion
+		#endregion >> Loading Map 
         
 		private void ActivateHostRoomUI ()
 		{
@@ -223,8 +211,8 @@ namespace GameUiNs
 				LoadingCircle.SetActive (true);
 				DeleteViewRooms ();
 			}
+
 			// LeaveRoom and Disconnect if leaving a hosted room
-			// TODO add confirmation from leaving host room
 			if (currentUI == HostingRoomPanel) {
 				prevUI.SetActive (false);
 				BackBtn.gameObject.SetActive (false);
@@ -249,60 +237,58 @@ namespace GameUiNs
 			UIToActivate.SetActive (!UIToActivate.activeSelf);
 
 		}
-
-        #region >> Environment Scanning
         
-        private void EnvironmentScanningClick () //TODO Update
-        {
-			// TODO Update this hiding code
-			GameObject currentUI = (GameObject) UIStack.Peek ();
-			currentUI.SetActive (false);
-			Srv.PrepareGameRPC ();
+		#endregion > Buttons On Click Events
+
+		#region Environment Scanning
+
+		private void EnvironmentScanningStart ()
+		{
 			PrepareGame ();
-			//TargetSpawner.Instance.InstantiateAfterDelay (); // TODO check if this is a good place for this instead of below
-            if (isScanning) {
-                EnvironmentScannerController.Instance.FinishScanning (EnvironmentScanningFinish, EnvironmentScanningProgress);
-                isScanning = false;
-            } else {
-                
-                var startScan = EnvironmentScannerController.Instance.StartScanning ();
-                if (startScan) {
-                    FeaturesVisualizer.EnablePointcloud ();
-                    //TargetSpawner.Instance.InstantiateAfterDelay();
-                    isScanning = startScan;
-                }
-            }
-        }
+			if (PhotonNetwork.connected)
+				Srv.PrepareGameRPC ();
+			// Start mapping
+			var startScan = EnvironmentScannerController.Instance.StartScanning ();
+			HelperText.text = "Mapping Started! Move your camera around to create a map.";
+			if (startScan) 
+				FeaturesVisualizer.EnablePointcloud ();
+		}
 
-        private void EnvironmentScanningProgress (float progress) // TODO Update
-        {
-            StatusText.text = "Saving Progress..." + (progress * 100f) + "%";
-        }
-        
-        private void EnvironmentScanningFinish (bool scanningRes) // TODO Update
-        {
-            StatusText.text = "Saving " + (scanningRes ? "success!" : "Error!");
-            StartGameBtn.gameObject.SetActive (true);
-            
-            if (PhotonNetwork.offlineMode || !PhotonNetwork.connected)
-                ActivateEnvironmentScanningBtnRPC ();
-            else
-                GetComponent<PhotonView> ().RPC ("ActivateEnvironmentScanningBtnRPC", PhotonTargets.All); // Pretty sure this is not need
-            
-            FeaturesVisualizer.DisablePointcloud ();
+		private void EnvironmentScanningEnd ()
+		{
+			if (PhotonNetwork.connected) {
+				if (Srv.IsHost)
+					ScanningFinishBtn.gameObject.SetActive (false);
+			} else {
+				ScanningFinishBtn.gameObject.SetActive (false);
+			}
+			EnvironmentScannerController.Instance.FinishScanning (EnvironmentScanningFinish, EnvironmentScanningProgress);
+		}
+
+		private void EnvironmentScanningProgress (float progress) // TODO Update
+		{
+			HelperText.text = "Saving Progress..." + (progress * 100f) + "%";
+		}
+
+		private void EnvironmentScanningFinish (bool scanningRes)
+		{
+			HelperText.text = "Saving " + (scanningRes ? "success!" : "Error!");
+			StartGameBtn.gameObject.SetActive (true);
+
+			if (PhotonNetwork.connected)
+				GetComponent<PhotonView> ().RPC ("EnvironmentScanningFinishRPC", PhotonTargets.Others);
+			FeaturesVisualizer.DisablePointcloud ();
 			FeaturesVisualizer.clearPointcloud ();
-            //StartEnvironmentScaningBtn.gameObject.SetActive(true);
-        }
+			StartLoadingMap ();
+		}
 
-        [PunRPC]
-        private void ActivateEnvironmentScanningBtnRPC () // TODO Update
-        {
-           // StartEnvironmentScaningBtn.gameObject.SetActive(true);
-        }
-        
-        #endregion
-        
-        #endregion
+		[PunRPC]
+		private void EnvironmentScanningFinishRPC ()
+		{
+			StartLoadingMap ();
+		}
+
+		#endregion Environment Scanning
 
 		#region Dynamic UI generation
 
@@ -310,7 +296,9 @@ namespace GameUiNs
 		{
 			// Clear the rooms first.
 			DeleteViewRooms ();
+			// Show loading circle while finding rooms
 			LoadingCircle.SetActive (true);
+			// 
 			int counter = 0;
 			roomsArray = Srv.GetRooms ();
 			if(roomsArray.Length > 0)
@@ -338,7 +326,6 @@ namespace GameUiNs
 
 		public void UpdatePlayerAmounts (string players, string maxPlayers, bool realValues)
 		{
-
 			if (realValues) {
 				HostingRoomPlayers.text = "Players: " + players + "/" + maxPlayers;
 				JoinedRoomPlayers.text = "Players: " + players + "/" + maxPlayers;
@@ -396,19 +383,24 @@ namespace GameUiNs
 			// Delete and reset Stack
 			UIStack = new Stack();
 			UIStack.Push (MainMenuPanel);
+			if (PhotonNetwork.connected) {
+				if (Srv.IsHost)
+					ScanningFinishBtn.gameObject.SetActive (true);
+			} else {
+				ScanningFinishBtn.gameObject.SetActive (true);
+			}
 			GameController.PrepareGame ();
 		
 		}
-		#endregion
+		#endregion  Dynamic UI generation
         
 		#region Networking
 
 		void Connect ()
 		{
-			float pseudoUID = Time.realtimeSinceStartup;
+			float pseudoUID = Random.Range (0.0f, 99.9f);
 			pseudoUID = pseudoUID - Mathf.FloorToInt (pseudoUID)*100000;
 			string playerName = "Player" + Mathf.FloorToInt (pseudoUID);
-			StatusText.text = playerName;
 			Srv.Connect (playerName);
 		}
 
@@ -449,27 +441,33 @@ namespace GameUiNs
 			DisconnectAfterLeaveRoom (id);
 		}
 
-		#endregion
+		#endregion Networking
 
         public void PlacenoteStatusChange (LibPlacenote.MappingStatus prevStatus, LibPlacenote.MappingStatus currStatus)
         {
             if (currStatus == LibPlacenote.MappingStatus.RUNNING && prevStatus == LibPlacenote.MappingStatus.LOST) {
-                StatusText.text = "Localized! Game Starts Now!";
-                TargetSpawner.Instance.InstantiateFlag ();
-
-                
-                GameController.StartGame ();
+                HelperText.text = "Localized! Game will start when everyone is localized";
+				if (PhotonNetwork.connected)
+					Srv.PlayerIsReadyRPC ();
+				else
+					StartGame ();
                 PlacenoteShowPoints.SetActive (false);
                 EnvironmentScannerController.Instance.OnPlacenoteStatusChange.RemoveListener (PlacenoteStatusChange);
             } 
             else if (currStatus == LibPlacenote.MappingStatus.RUNNING && prevStatus == LibPlacenote.MappingStatus.WAITING) {
-                StatusText.text = "Mapping";
+                HelperText.text = "Mapping";
             } 
             else if (currStatus == LibPlacenote.MappingStatus.LOST) {
-                StatusText.text = "Searching for position lock";
+                HelperText.text = "Move and look to where the map was created to localize.";
             } 
             else if (currStatus == LibPlacenote.MappingStatus.WAITING) {
             }
         }
+
+		public void StartGame ()
+		{
+			HelperText.text = "Game start!";
+			GameController.StartGame ();
+		}
     }
 }

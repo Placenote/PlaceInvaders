@@ -15,15 +15,18 @@ namespace PunServerNs
         public string GameNetVersion = "1.00";
         public string DefaultUserName = "Player1";
 
-        // parametert of room
+        // parameters of room
         public string RoomName = "PrototypeRoom";
         RoomOptions roomOptions;
         TypedLobby lobby = TypedLobby.Default;
 
-		// Hosting
+		// Host vs regular player bools
 		public bool IsHost { get; private set; } 
 		public bool IsLeavingHostedRoom { private get; set; }
 		public bool IsQuitingToMainMenu { get; private set; }
+
+		// How many players are ready to begin the game
+		private bool[] ReadyPlayers;
 
 
 
@@ -140,7 +143,6 @@ namespace PunServerNs
 		[PunRPC]
 		private void KickPlayer ()
 		{
-			Debug.Log ("GOT KICKED");
 			SetupUIInstance.GoBack ();
 		}
 
@@ -152,12 +154,55 @@ namespace PunServerNs
 		public void PrepareGameRPC ()
 		{
 			GetComponent<PhotonView> ().RPC ("PrepareGame", PhotonTargets.Others);
+			ReadyPlayers = new bool[PhotonNetwork.room.PlayerCount];
+			for (int i = 0 ; i < PhotonNetwork.room.PlayerCount; i++) {
+				ReadyPlayers [i] = false;
+			}
 		}
 
 		[PunRPC]
 		private void PrepareGame ()
 		{
+			ReadyPlayers = new bool[PhotonNetwork.room.PlayerCount];
+			for (int i = 0 ; i < PhotonNetwork.room.PlayerCount; i++) {
+				ReadyPlayers [i] = false;
+			}
+
 			SetupUIInstance.PrepareGame ();
+		}
+
+		public void PlayerIsReadyRPC ()
+		{
+			GetComponent<PhotonView> ().RPC ("PlayerIsReady", PhotonTargets.All);
+		}
+
+		[PunRPC]
+		public void PlayerIsReady ()
+		{
+			IncrementReadyPlayers ();
+			if (AllPlayersAreReady ()) {
+				SetupUIInstance.StartGame ();
+			}
+		}
+
+		public void IncrementReadyPlayers ()
+		{
+			for (int i = 0 ; i < PhotonNetwork.room.PlayerCount; i++) {
+				if (ReadyPlayers [i] == false) {
+					ReadyPlayers [i] = true;
+					break;
+				}
+					
+			}
+		}
+
+		public bool AllPlayersAreReady ()
+		{
+			for (int i = 0 ; i < PhotonNetwork.room.PlayerCount; i++) {
+				if (ReadyPlayers [i] == false)
+					return false;
+			}
+			return true;
 		}
 
 		private void UpdatePlayerAmounts ()
