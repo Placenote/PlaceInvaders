@@ -14,7 +14,7 @@ namespace GameUiNs
     public class SetupUI : MonoBehaviour
     {
 		public SrvController Srv;
-		 
+
 		#region Main UI Elements
 
 		// Stack to keep track of current UI layer
@@ -79,7 +79,7 @@ namespace GameUiNs
         {
 			if (Srv == null)
 				Srv = FindObjectOfType<SrvController> ();
-			
+
 			BackBtn.onClick.AddListener (GoBack);
 
 			// Hosting path
@@ -93,7 +93,7 @@ namespace GameUiNs
 
 			// Joining path
 			JoinGameBtn.onClick.AddListener (ActivateViewRoomsUI);
-		
+
 			// SinglePlayer path
 			SinglePlayerBtn.onClick.AddListener (EnvironmentScanningStart);
 
@@ -117,12 +117,14 @@ namespace GameUiNs
 			JoinedRoomPanel.SetActive (false);
 			Srv.IsLeavingHostedRoom = false;
 			HelperText.text = "";
+      EnvironmentScannerController.Instance.OnPlacenoteStatusChange.RemoveListener (PlacenoteStatusChange);
+      EnvironmentScannerController.Instance.StopUsingMap ();
 		}
 
         #region > Buttons On Click Events
-        
-		#region >> Loading Map 
-        
+
+		#region >> Loading Map
+
         public void StartLoadingMap ()
         {
             if (string.IsNullOrEmpty(EnvironmentScannerController.Instance.LatestMapId)) {
@@ -137,7 +139,7 @@ namespace GameUiNs
             HelperText.text = "Map Loaded Succesfully!";
             EnvironmentScannerController.Instance.OnPlacenoteStatusChange.AddListener (PlacenoteStatusChange);
         }
-        
+
         private void MapLoadingFail (string mapId) // TODO UPDATE
         {
             HelperText.text = "Map Loading Fail!";
@@ -148,9 +150,9 @@ namespace GameUiNs
         {
             HelperText.text = "Loading Map..." + (percentage * 100f) + "%";
         }
-        
-		#endregion >> Loading Map 
-        
+
+		#endregion >> Loading Map
+
 		private void ActivateHostRoomUI ()
 		{
 			if (CreateHostRoomPanel != null)
@@ -181,7 +183,7 @@ namespace GameUiNs
 			if (ViewRoomsPanel != null)
 				ActivateUI (ViewRoomsPanel);
 		}
-			
+
 
 		private void ActivateJoinedRoomUI ()
 		{
@@ -237,7 +239,7 @@ namespace GameUiNs
 			UIToActivate.SetActive (!UIToActivate.activeSelf);
 
 		}
-        
+
 		#endregion > Buttons On Click Events
 
 		#region Environment Scanning
@@ -250,7 +252,7 @@ namespace GameUiNs
 			// Start mapping
 			var startScan = EnvironmentScannerController.Instance.StartScanning ();
 			HelperText.text = "Mapping Started! Move your camera around to create a map.";
-			if (startScan) 
+			if (startScan)
 				FeaturesVisualizer.EnablePointcloud ();
 		}
 
@@ -298,7 +300,7 @@ namespace GameUiNs
 			DeleteViewRooms ();
 			// Show loading circle while finding rooms
 			LoadingCircle.SetActive (true);
-			// 
+			//
 			int counter = 0;
 			roomsArray = Srv.GetRooms ();
 			if(roomsArray.Length > 0)
@@ -390,10 +392,10 @@ namespace GameUiNs
 				ScanningFinishBtn.gameObject.SetActive (true);
 			}
 			GameController.PrepareGame ();
-		
+
 		}
 		#endregion  Dynamic UI generation
-        
+
 		#region Networking
 
 		void Connect ()
@@ -453,13 +455,13 @@ namespace GameUiNs
 					StartGame ();
                 PlacenoteShowPoints.SetActive (false);
                 EnvironmentScannerController.Instance.OnPlacenoteStatusChange.RemoveListener (PlacenoteStatusChange);
-            } 
+            }
             else if (currStatus == LibPlacenote.MappingStatus.RUNNING && prevStatus == LibPlacenote.MappingStatus.WAITING) {
                 HelperText.text = "Mapping";
-            } 
+            }
             else if (currStatus == LibPlacenote.MappingStatus.LOST) {
                 HelperText.text = "Move and look to where the map was created to localize.";
-            } 
+            }
             else if (currStatus == LibPlacenote.MappingStatus.WAITING) {
             }
         }
