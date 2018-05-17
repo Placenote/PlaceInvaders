@@ -125,7 +125,7 @@ namespace ARKitSupportNs
                         ARHitTestResultType.ARHitTestResultTypeExistingPlaneUsingExtent,
                         // if you want to use infinite planes use this:
                         //ARHitTestResultType.ARHitTestResultTypeExistingPlane,
-                        ARHitTestResultType.ARHitTestResultTypeHorizontalPlane,
+                        ARHitTestResultType.ARHitTestResultTypeEstimatedHorizontalPlane,
                         ARHitTestResultType.ARHitTestResultTypeFeaturePoint
                     };
 
