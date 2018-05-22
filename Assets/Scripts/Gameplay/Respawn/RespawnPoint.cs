@@ -8,7 +8,7 @@ namespace EnemiesNs
     public class RespawnPoint : MonoBehaviour
     {
         public int Id;
-        public float TimeOut = 5;
+        public float TimeOut = 5; 
         // Use this for initialization
         
         void Start()
@@ -25,9 +25,10 @@ namespace EnemiesNs
             yield return null;
             while (true)
             {
-                yield return new WaitForSeconds(TimeOut);
+                //yield return new WaitForSeconds(TimeOut);
                 if (GameController.Data.GameState == GameStateId.GamePlaying)
                     GameController.CreateRandomEnemy();
+                yield return new WaitForSeconds (TimeOut);
             }
         }
 

@@ -7,13 +7,9 @@ using System;
 
 namespace EnemiesNs
 {
-
-
-
-    [RequireComponent(typeof(EnemyState))]
+    [RequireComponent (typeof (EnemyState))]
     public class EnemyAI : Photon.PunBehaviour
     {
-        
         public enum StageId
         {
             JustCreated,
@@ -24,47 +20,47 @@ namespace EnemiesNs
         public float FullHealth = 1f;
         public StageId CurrentStage = StageId.JustCreated;
 
-        [Header("Setup Attack")]
-        public float MeleeDamageDistance = 2;
+        [Header ("Setup Attack")]
+        public float MeleeDamageDistance = 1.5f; // Was 2
 
-        [Range(0, 1)]
+        [Range (0, 1)]
         public float AttackPower = 0.1f;
-        public float AttackTimeLimit = 10f;
+        public float AttackTimeLimit = 100f;
 
-        [Header("Setup Rotating to player")]
-        [Tooltip("Degrees per second")]
+        [Header ("Setup Rotating to player")]
+        [Tooltip ("Degrees per second")]
         public float RotationSpeed;
 
-        [Header("Setup approach to player")]
+        [Header ("Setup approach to player")]
         public float ClosestDist = 0.5f;
         public float StartDecelerationDist = 1.5f;
 
         public AnimationCurve NormalizedDecelerationCurve;
 
-        [Tooltip("Usual speed of enemy")]
-        public float FarFromPlayerSpeed = 2f;
+        [Tooltip ("Usual speed of enemy")]
+        public float FarFromPlayerSpeed = 1.25f; // Was 2
 
-        [Tooltip("Speed of enemy at deceleration point and closer")]
-        public float CloseToPlayerSpeed = 0.75f;
+        [Tooltip ("Speed of enemy at deceleration point and closer")]
+        public float CloseToPlayerSpeed = 1f; // Was 0.75f
 
         public FlyAwayMoving FlyAway;
 
         public EnemyState EnemyData;
 
         // Use this for initialization
-        void Start()
+        void Start ()
         {
-            EnemyData = GetComponent<EnemyState>();
+            EnemyData = GetComponent<EnemyState> ();
             EnemyData.CurrentHealth = FullHealth;
             CurrentStage = StageId.JustCreated;
 
             if (transform.parent == null)
                 transform.parent = GameController.WorldRootObject.transform;
 
-            FlyAway = GetComponent<FlyAwayMoving>();
+            FlyAway = GetComponent<FlyAwayMoving> ();
             if (FlyAway == null)
-                FlyAway = gameObject.AddComponent<FlyAwayMoving>();
-            
+                FlyAway = gameObject.AddComponent<FlyAwayMoving> ();
+
 
         }
 
@@ -83,62 +79,60 @@ namespace EnemiesNs
             get
             {
                 if (_targetPlayer == null)
-                    _targetPlayer = GameController.GetRandomPlayer();
+                    _targetPlayer = GameController.GetRandomPlayer ();
                 return _targetPlayer;
             }
         }
 
         bool IsAlreadyWaitingPlayer = false;
-        IEnumerator WaitPlayer()
+        IEnumerator WaitPlayer ()
         {
             if (IsAlreadyWaitingPlayer)
             {
-                //SwitchStage(StageId.Spreading);
                 yield break;
             }
             yield return null;
             PlayerController player = null;
             do
             {
-                // Debug.Log("2");
+                yield return new WaitForSeconds (0.25f);
 
-                yield return new WaitForSeconds(1);
-                // Debug.Log("3");
-
-                player = GameController.GetRandomPlayer();
+                if (PhotonNetwork.connected)
+                    player = GameController.GetRandomPlayer ();
+                else
+                    player = GameController.CurrentPlayer;
             }
             while (player == null || player.IsDead);
-            Debug.Log("============ Player for attcak is  found  ============");
+            Debug.Log ("============ Player for attack is  found  ============");
 
 
             _targetPlayer = player;
             IsAlreadyWaitingPlayer = false;
-            SwitchStage(StageId.Attack);
+            SwitchStage (StageId.Attack);
 
         }
 
 
-        void SwitchStage(StageId newstage)
+        void SwitchStage (StageId newstage)
         {
             switch (newstage)
             {
                 case StageId.FlyAway:
                     CurrentStage = newstage;
-                    FlyAway.Restart(transform);
+                    FlyAway.Restart (transform);
 
                     break;
 
                 case StageId.TargetSelection:
-                    // Debug.Log("1");
 
                     CurrentStage = newstage;
-                    StartCoroutine(WaitPlayer());
+                    StartCoroutine (WaitPlayer ());
                     break;
 
 
                 case StageId.Attack:
                     CurrentStage = newstage;
-                    StartCoroutine(AttackTimer());
+                    StartCoroutine (AttackTimer ());
                     break;
 
 
@@ -151,25 +145,25 @@ namespace EnemiesNs
 
 
         bool IsAttackTimeoutRunning;
-        IEnumerator AttackTimer()
+        IEnumerator AttackTimer ()
         {
             if (IsAttackTimeoutRunning)
                 yield break;
             IsAttackTimeoutRunning = true;
-            yield return new WaitForSeconds(AttackTimeLimit);
+            yield return new WaitForSeconds (AttackTimeLimit);
             if (CurrentStage == StageId.Attack)
-                SwitchStage(StageId.FlyAway);
+                SwitchStage (StageId.FlyAway);
 
             IsAttackTimeoutRunning = false;
         }
 
-        [Header("Public for debug only")]
+        [Header ("Public for debug only")]
         public float MovingSpeed;
         public float Distance;
         public Quaternion NewRotation;
         public Vector3 Delta;
 
-        void DoActivity(float deltaTime)
+        void DoActivity (float deltaTime)
         {
             if (GameController.Data.GameState != GameStateId.GamePlaying)
                 return;
@@ -177,12 +171,12 @@ namespace EnemiesNs
             switch (CurrentStage)
             {
                 case StageId.JustCreated:
-                    SwitchStage(StageId.FlyAway);
+                    SwitchStage (StageId.FlyAway);
                     break;
 
                 case StageId.FlyAway:
-                    if(!FlyAway.IsRunning)
-                        SwitchStage(StageId.TargetSelection);
+                    if (!FlyAway.IsRunning)
+                        SwitchStage (StageId.TargetSelection);
                     break;
 
                 case StageId.Attack:
@@ -191,17 +185,17 @@ namespace EnemiesNs
 
                         if (TargetPlayer.IsDead)
                         {
-                            SwitchStage(StageId.FlyAway);
+                            SwitchStage (StageId.FlyAway);
                             break;
                         }
-                       
-                        Delta = TargetPlayer.transform.position - transform.position;
-                       
-                        Distance = Delta.magnitude;
-                        Quaternion desiredRotation = Quaternion.LookRotation(Delta);
-                         NewRotation =   Quaternion.RotateTowards(transform.rotation,desiredRotation,  RotationSpeed * Time.deltaTime);
 
-                        float NewForwardMagnitude = Quaternion.Dot(NewRotation , transform.rotation);
+                        Delta = TargetPlayer.transform.position - transform.position;
+
+                        Distance = Delta.magnitude;
+                        Quaternion desiredRotation = Quaternion.LookRotation (Delta);
+                        NewRotation = Quaternion.RotateTowards (transform.rotation, desiredRotation, RotationSpeed * Time.deltaTime);
+
+                        float NewForwardMagnitude = Quaternion.Dot (NewRotation, transform.rotation);
                         if (NewForwardMagnitude < 0)
                             NewForwardMagnitude = 0;
 
@@ -209,16 +203,13 @@ namespace EnemiesNs
                         if (Distance < ClosestDist)
                             MovingSpeed = 0;
                         else if (Distance < StartDecelerationDist)
-                            MovingSpeed = CloseToPlayerSpeed * NormalizedDecelerationCurve.Evaluate( Mathf.Abs((Distance - ClosestDist) / (StartDecelerationDist - ClosestDist)) );
+                            MovingSpeed = CloseToPlayerSpeed * NormalizedDecelerationCurve.Evaluate (Mathf.Abs ((Distance - ClosestDist) / (StartDecelerationDist - ClosestDist)));
 
-                        transform.position = transform.position +   deltaTime * MovingSpeed * Quaternion.Dot(NewRotation, transform.rotation)* Delta;
+                        transform.position = transform.position + deltaTime * MovingSpeed * Quaternion.Dot (NewRotation, transform.rotation) * Delta;
                         transform.rotation = NewRotation;
-
-
                         if (Distance < MeleeDamageDistance)
                         {
-                            
-                            TargetPlayer.Damage(AttackPower);
+                            TargetPlayer.Damage (AttackPower);
                         }
 
                     }
@@ -227,14 +218,14 @@ namespace EnemiesNs
 
             }
 
-            
+
         }
 
 
-        void Update()
+        void Update ()
         {
-            if(photonView.isMine || !PhotonNetwork.connected)
-                DoActivity(Time.deltaTime);
+
+            DoActivity (Time.deltaTime);
         }
 
 

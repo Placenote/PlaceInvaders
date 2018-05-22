@@ -94,9 +94,10 @@ namespace PlayerNs
             CurrentHealth = FullHealth;
             transform.parent = GameController.WorldRootObject.transform;
             GameController.RegisterPlayer(this);
+            gameObject.transform.GetChild (1).gameObject.SetActive (false);
 
-			//TODO Check why this throw error
-			/*
+            //TODO Check why this throw error
+            /*
             if ((!PhotonNetwork.offlineMode || PhotonNetwork.connected) && photonView.isMine)
                 photonView.RPC("SetCubeColor", PhotonTargets.All, Random.ColorHSV(0, 255, 0, 255, 0, 255, 200, 255));   */
         }
@@ -106,19 +107,29 @@ namespace PlayerNs
         {
             PlayerCubeRenderer.sharedMaterial.color = color;
         }
-        
+
+        private bool activateGun = true;
         protected override void Update()
         {
             base.Update();
+            if (activateGun)
+            {
+                if (GameController.IsGamePlaying)
+                {
+                    activateGun = false;
+                    gameObject.transform.GetChild (1).gameObject.SetActive (true );
+                }
+            }
         }
 
         public void Damage(float damageAmount)
         {
             if (CurrentHealth > 0)
             {
-                if (PhotonNetwork.offlineMode || !PhotonNetwork.connected)
+                if (!PhotonNetwork.connected)
                 {
                     CurrentHealth -= damageAmount;
+                    GameController.Data.RegisterPlayerDeath ();
                 }
                 else
                     photonView.RPC("DecreaseHealth", PhotonTargets.All, damageAmount);
