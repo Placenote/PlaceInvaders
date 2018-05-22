@@ -8,7 +8,7 @@ namespace EnemiesNs
         public float MovingSpeed = 2;
 
         public float RotatingSpeed = 15;
-        public float TimeToWork = 3;
+        public float TimeToWork = 1; // Was 3
         public Transform someObject;
 
         [Header("Public for debug purposes only")]
@@ -41,13 +41,13 @@ namespace EnemiesNs
                 IsRunning = false;
                 return;
             }
-       
+
             IsRunning = true;
             Quaternion targetRotation = Quaternion.LookRotation
                 (
                     new Vector3(someObject.forward.x+RandomDirection.x,
                     RandomDirection.y*(1- Mathf.Lerp(0,1, WorkedTime / TimeToWork) ),
-                    someObject.forward.z+ RandomDirection.z) 
+                    someObject.forward.z+ RandomDirection.z)
                 );
 
             targetRotation = Quaternion.RotateTowards(someObject.rotation, targetRotation, RotatingSpeed * TimeDeltaTime);
@@ -79,7 +79,7 @@ namespace EnemiesNs
             if (IsRunning && IsManagedHere())
             {
                 Move(Time.deltaTime);
-                
+
             }
         }
     }

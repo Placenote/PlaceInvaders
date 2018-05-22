@@ -55,4 +55,7 @@ MonoBehaviour:
   - TestRPC
   - EnvironmentScanningFinishRPC
   - PlayerIsReady
+  - StartGameRPC
+  - EnvironmentMappingCompleteRPC
+  - MappingStarted
   DisableAutoOpenWizard: 1

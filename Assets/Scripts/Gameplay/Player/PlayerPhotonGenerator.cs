@@ -69,13 +69,12 @@ namespace PlayerNs
 					Destroy (Player.gameObject);
 				else
 					Network.Destroy (Player.gameObject);
-			} 
+			}
 			else if (id == GameData.SomethingId.ToMainMenu && Player != null) {
 				if (PhotonNetwork.offlineMode || !PhotonNetwork.connected) {
 					Destroy (Player.gameObject);
-				} else { 
+				} else {
 					GameController.RemovePlayer (Player);
-					//Destroy (Player.gameObject);
 					PhotonNetwork.Destroy (Player.gameObject);
 				}
 			}

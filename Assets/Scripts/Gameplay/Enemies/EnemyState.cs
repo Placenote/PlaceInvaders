@@ -29,9 +29,12 @@ namespace EnemiesNs
             
             
             if (DeathPrefab != null)
-                Instantiate(DeathPrefab, transform.position, transform.rotation);
+                if (PhotonNetwork.connected)
+                    PhotonNetwork.Instantiate ("BigExplosion", transform.position, transform.rotation, 0);
+                else
+                    Instantiate (DeathPrefab, transform.position, transform.rotation);
 
-            Destroy(gameObject);
+            Destroy (gameObject);
         }
 
         public void Damage (float damage)
