@@ -9,45 +9,42 @@ namespace GameplayNs
 {
     public class GameSetupController : MonoBehaviour
     {
+        // External class references.
         public SrvController Srv;
         public GameUIController GameUI;
-
 
         // Placenote things
         public GameObject PlacenoteShowPoints;
         public FeaturesVisualizer FeaturesVisualizer;
-        public GameObject flag;
+        public GameObject flag; // TODO Update flag for use
 
         public bool isLocalized { get; private set; }
 
-
-        private void Start ()
+        private void Start()
         {
             if (Srv == null)
-                Srv = FindObjectOfType<SrvController> ();
+                Srv = FindObjectOfType<SrvController>();
             if (GameUI == null)
-                GameUI = FindObjectOfType<GameUIController> ();
+                GameUI = FindObjectOfType<GameUIController>();
 
             isLocalized = false;
-
-            // TODO Put this in the right spot
-            EnvironmentScannerController.Instance.OnPlacenoteStatusChange.RemoveListener (PlacenoteStatusChange);
-            EnvironmentScannerController.Instance.StopUsingMap ();
         }
 
-        #region >> Environment Mapping
 
-        public void EnvironmentMappingStart ()
+        #region Environment Mapping
+
+        public void EnvironmentMappingStart()
         {
-            GameController.PrepareGame ();
+            PlacenoteShowPoints.SetActive(true);
+            GameController.PrepareGame();
             // Start mapping
-            var startScan = EnvironmentScannerController.Instance.StartMapping ();
+            var startScan = EnvironmentScannerController.Instance.StartMapping();
             GameUI.HelperText.text = "Mapping Started! Move your camera around to create a map.";
             if (startScan)
-                FeaturesVisualizer.EnablePointcloud ();
+                FeaturesVisualizer.EnablePointcloud();
         }
 
-        public void EnvironmentMappingStop ()
+        public void EnvironmentMappingStop()
         {
             if (PhotonNetwork.connected)
             {
@@ -57,64 +54,68 @@ namespace GameplayNs
                     Srv.CurrRoomStatus = SrvController.RoomStatus.Localizing;
                 }
             }
-            EnvironmentScannerController.Instance.FinishMapping (EnvironmentMappingComplete, EnvironmentMappingProgress);
+            EnvironmentScannerController.Instance.FinishMapping(EnvironmentMappingComplete, EnvironmentMappingProgress);
         }
 
-        private void EnvironmentMappingProgress (float progress)
+        private void EnvironmentMappingProgress(float progress)
         {
             GameUI.HelperText.text = "Saving Progress..." + (progress * 100f) + "%";
         }
 
-        private void EnvironmentMappingComplete (bool scanningRes)
+        private void EnvironmentMappingComplete(bool scanningRes)
         {
             GameUI.HelperText.text = "Saving " + (scanningRes ? "success!" : "Error!");
 
             if (PhotonNetwork.connected)
-                GetComponent<PhotonView> ().RPC ("EnvironmentMappingCompleteRPC", PhotonTargets.Others);
-            FeaturesVisualizer.DisablePointcloud ();
-            FeaturesVisualizer.clearPointcloud ();
-            StartLoadingMap ();
+                GetComponent<PhotonView>().RPC("EnvironmentMappingCompleteRPC", PhotonTargets.Others);
+            FeaturesVisualizer.DisablePointcloud();
+            FeaturesVisualizer.clearPointcloud();
+            StartLoadingMap();
         }
 
         [PunRPC]
-        private void EnvironmentMappingCompleteRPC ()
+        private void EnvironmentMappingCompleteRPC()
         {
-            StartLoadingMap ();
+            StartLoadingMap();
         }
 
-        #endregion >> Environment Mapping
+        #endregion Environment Mapping
 
-        #region >> Loading Map
 
-        public void StartLoadingMap ()
+        #region Loading Map
+
+        public void StartLoadingMap()
         {
-            if (string.IsNullOrEmpty (EnvironmentScannerController.Instance.LatestMapId))
+            if (string.IsNullOrEmpty(EnvironmentScannerController.Instance.LatestMapId))
             {
                 GameUI.HelperText.text = "Error! Can't find Environment Scan!";
                 return;
             }
-            var res = EnvironmentScannerController.Instance.LoadLatestMap (LatestMapLoaded, MapLoadingFail, MapLoadingPercentage);
+            var res = EnvironmentScannerController.Instance.LoadLatestMap(LatestMapLoaded, MapLoadingFail, MapLoadingPercentage);
         }
 
-        private void LatestMapLoaded (string mapId)
+        private void LatestMapLoaded(string mapId)
         {
             GameUI.HelperText.text = "Map Loaded Succesfully! Move to spot to localize";
-            EnvironmentScannerController.Instance.OnPlacenoteStatusChange.AddListener (PlacenoteStatusChange);
+            EnvironmentScannerController.Instance.OnPlacenoteStatusChange.AddListener(PlacenoteStatusChange);
         }
 
-        private void MapLoadingFail (string mapId)
+        private void MapLoadingFail(string mapId)
         {
             GameUI.HelperText.text = "Map loading fail! Quit to main menu and try again.";
         }
 
-        private void MapLoadingPercentage (float percentage)
+        private void MapLoadingPercentage(float percentage)
         {
             GameUI.HelperText.text = "Loading Map..." + (percentage * 100f) + "%";
         }
 
-        #endregion >> Loading Map
+        #endregion Loading Map
 
-        public void PlacenoteStatusChange (LibPlacenote.MappingStatus prevStatus, LibPlacenote.MappingStatus currStatus)
+
+        #region Placenote events
+
+        public void PlacenoteStatusChange(LibPlacenote.MappingStatus prevStatus, LibPlacenote.MappingStatus currStatus)
         {
             if (currStatus == LibPlacenote.MappingStatus.RUNNING && prevStatus == LibPlacenote.MappingStatus.LOST)
             {
@@ -122,12 +123,12 @@ namespace GameplayNs
                 if (PhotonNetwork.connected)
                 {
                     Srv.TotalLocalizedPlayers = Srv.TotalLocalizedPlayers + 1;
-                    GameController.Data.UpdatePlayerAmounts ();
+                    GameController.Data.UpdatePlayerAmounts();
                     // If user is the host they can start the game once localized.
                     if (PhotonNetwork.isMasterClient)
                     {
                         GameUI.HelperText.text = "Localized! Press the button to start the game";
-                        GameUI.StartGameBtn.gameObject.SetActive (true);
+                        GameUI.StartGameBtn.gameObject.SetActive(true);
                     }
                     // If the user is not the host the game will start automatically after localization
                     // or it will start once the host starts
@@ -138,7 +139,7 @@ namespace GameplayNs
                         else
                         {
                             GameUI.HelperText.text = "Game start!";
-                            GameController.StartGame ();
+                            GameController.StartGame();
                         }
 
                     }
@@ -146,10 +147,10 @@ namespace GameplayNs
                 else
                 {
                     GameUI.HelperText.text = "Localized! Press the button to start the game";
-                    GameUI.StartGameBtn.gameObject.SetActive (true);
+                    GameUI.StartGameBtn.gameObject.SetActive(true);
                 }
-                PlacenoteShowPoints.SetActive (false);
-                EnvironmentScannerController.Instance.OnPlacenoteStatusChange.RemoveListener (PlacenoteStatusChange);
+                PlacenoteShowPoints.SetActive(false);
+                EnvironmentScannerController.Instance.OnPlacenoteStatusChange.RemoveListener(PlacenoteStatusChange);
             }
             else if (currStatus == LibPlacenote.MappingStatus.RUNNING && prevStatus == LibPlacenote.MappingStatus.WAITING)
             {
@@ -164,32 +165,45 @@ namespace GameplayNs
             }
         }
 
-        public void StartGame ()
+        #endregion Placenote events
+
+
+        #region Game events 
+
+        public void QuitGame()
+        {
+            Debug.Log("Removing Listener from OnPlacenoteStatusChange...");
+            EnvironmentScannerController.Instance.OnPlacenoteStatusChange.RemoveListener(PlacenoteStatusChange);
+        }
+
+        public void StartGame()
         {
             if (PhotonNetwork.connected)
             {
                 // Room changes its status to playing
                 Srv.CurrRoomStatus = SrvController.RoomStatus.Playing;
-                GetComponent<PhotonView> ().RPC ("StartGameRPC", PhotonTargets.Others);
+                GetComponent<PhotonView>().RPC("StartGameRPC", PhotonTargets.Others);
             }
 
             GameUI.HelperText.text = "Game start!"; // TODO fix this so that ui is being handled in the controller
-            GameController.StartGame ();
-            GameUI.StartGameBtn.gameObject.SetActive (false);
+            GameController.StartGame();
+            GameUI.StartGameBtn.gameObject.SetActive(false);
         }
 
         [PunRPC]
-        private void StartGameRPC ()
+        private void StartGameRPC()
         {
             if (isLocalized)
             {
                 GameUI.HelperText.text = "Game start!";
-                GameController.StartGame ();
+                GameController.StartGame();
             }
             else
             {
                 GameUI.HelperText.text = "The game has started. You need to localize before you can play!";
             }
         }
+
+        #endregion Game events
     }
 }

@@ -13,9 +13,11 @@ namespace GameUiNs
 
     public class MainMenuUIController : MonoBehaviour
     {
+        // External class references.
         public SrvController Srv;
         public GameUIController GameUI;
         public GameSetupController GameSetup;
+
 
         #region Main UI Elements
 
@@ -51,7 +53,6 @@ namespace GameUiNs
         #endregion Main UI Elements
 
 
-
         private void Start ()
         {
             if (Srv == null)
@@ -77,6 +78,9 @@ namespace GameUiNs
             Initialize ();
         }
 
+        /// <summary>
+        /// Reset the screen to the title screen main menu
+        /// </summary>
         public void Initialize ()
         {
             MainMenuPanel.SetActive (true);
@@ -89,6 +93,7 @@ namespace GameUiNs
             UIStack = new Stack ();
             UIStack.Push (MainMenuPanel);
         }
+
 
         #region > Buttons On Click Events
 
@@ -138,7 +143,7 @@ namespace GameUiNs
             if (UIStack.Peek () == MainMenuPanel)
                 BackBtn.gameObject.SetActive (false);
 
-            // Discommect if leaving the view rooms panel.
+            // Disconnect if leaving the view rooms panel.
             if (currentUI == ViewRoomsPanel)
             {
                 Disconnect ();
@@ -169,10 +174,15 @@ namespace GameUiNs
 
             GameSetup.EnvironmentMappingStart ();
         }
+
         #endregion > Buttons On Click Events
+
 
         #region Dynamic UI generation
 
+        /// <summary>
+        /// Generates all the available rooms that are nearby based on GPS
+        /// </summary>
         public void GenerateViewRooms ()
         {
             // Clear the rooms first.
@@ -210,6 +220,9 @@ namespace GameUiNs
             }
         }
 
+        /// <summary>
+        /// Removes all rooms from viewRoomsPanel
+        /// </summary>
         void DeleteViewRooms ()
         {
             foreach (Transform child in RoomButtonsParent.transform)
@@ -218,6 +231,9 @@ namespace GameUiNs
             }
         }
 
+        /// <summary>
+        /// Error panel when room fails to be created
+        /// </summary>
         public void FailToCreateRoom ()
         {
             GameObject currentUI = (GameObject) UIStack.Peek ();
@@ -226,6 +242,10 @@ namespace GameUiNs
             FailToCreateRoomPanel.SetActive (true);
         }
 
+        /// <summary>
+        /// Return to previous UI when user confirms that their room failed 
+        /// to be created
+        /// </summary>
         public void FailToCreateRoomConfirm ()
         {
             FailToCreateRoomPanel.SetActive (false);
@@ -236,6 +256,7 @@ namespace GameUiNs
         }
 
         #endregion  Dynamic UI generation
+
 
         #region Networking
 

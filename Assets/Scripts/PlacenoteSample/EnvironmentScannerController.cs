@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections;
 using System.Linq;
 using System.Runtime.InteropServices;
 using GameUiNs;
@@ -15,10 +16,12 @@ namespace Placenote
 
     public class EnvironmentScannerController : MonoBehaviour, PlacenoteListener
     {
+        // External class references.
+        public GameUIController GameUI;
+
         public Text PlacenoteStatusText;
         public UnityEvent OnARKitInitialized = new UnityEvent ();
         public PlacenoteStatusChangeEvent OnPlacenoteStatusChange = new PlacenoteStatusChangeEvent ();
-        public GameUIController GameUI;
 
         public string LatestMapId;
 
@@ -27,7 +30,6 @@ namespace Placenote
         private UnityARImageFrameData mImage = null;
         private UnityARCamera mARCamera;
         private bool mARKitInit = false;
-
 
         private bool isUsingMap = false;
 
@@ -51,14 +53,19 @@ namespace Placenote
 
         #endregion > Singleton
 
+
         private void Start ()
         {
+            if (GameUI == null)
+                GameUI = FindObjectOfType<GameUIController>();
             mSession = UnityARSessionNativeInterface.GetARSessionNativeInterface ();
             UnityARSessionNativeInterface.ARFrameUpdatedEvent += ARFrameUpdated;
             StartARKit ();
             FeaturesVisualizer.EnablePointcloud ();
             LibPlacenote.Instance.RegisterListener (this);
         }
+
+        #region Mapping Start
 
         /// <summary>
         /// Starts environment scanning, return false if SDK not yet initialized,
@@ -73,15 +80,18 @@ namespace Placenote
                 return false;
             }
 
-
             if (PhotonNetwork.connected)
             {
                 GetComponent<PhotonView> ().RPC ("MappingStarted", PhotonTargets.Others);
             }
 
+            //GameUI.StartSession(); // TODO DELETE
             LibPlacenote.Instance.StartSession ();
+           
             return true;
         }
+
+
 
         [PunRPC]
         private void MappingStarted ()
@@ -132,24 +142,26 @@ namespace Placenote
             LatestMapId = id;
         }
 
+        #endregion Mapping start
 
+
+        #region Mapping end
 
         /// <summary>
-        ///  return false if SDK not yet initialized, else
-        ///		return true and set loaded maps list into ibPlacenote.Instance.ListMaps;
+        /// Stop Placenote session
         /// </summary>
-        /// <param name="mapsLoaded"></param>
-        /// <returns></returns>
-        public bool GetMapsCount (Action<LibPlacenote.MapInfo []> mapsLoaded)
+        public void StopUsingMap()
         {
-            if (!LibPlacenote.Instance.Initialized ())
-            {
-                Debug.Log ("SDK not yet initialized");
-                return false;
-            }
-            LibPlacenote.Instance.ListMaps (mapsLoaded);
-            return true;
+            FeaturesVisualizer.DisablePointcloud();
+            FeaturesVisualizer.clearPointcloud();
+            LibPlacenote.Instance.StopSession();
         }
+
+        #endregion Mapping end
+
+
+        #region Mapping utility
+
         /// <summary>
         /// Load lasted scanned map, return false if SDK not yet initialized or map is null
         /// </summary>
@@ -187,15 +199,8 @@ namespace Placenote
                      onLoadingPercentage.Invoke (percentage);
                  }
              });
-
+            
             return true;
-        }
-        /// <summary>
-        /// Stop Placenote session
-        /// </summary>
-        public void StopUsingMap ()
-        {
-            LibPlacenote.Instance.StopSession ();
         }
 
         /// <summary>
@@ -248,6 +253,26 @@ namespace Placenote
             });
             return true;
         }
+
+        /// <summary>
+        ///  return false if SDK not yet initialized, else
+        ///     return true and set loaded maps list into ibPlacenote.Instance.ListMaps;
+        /// </summary>
+        /// <param name="mapsLoaded"></param>
+        /// <returns></returns>
+        public bool GetMapsCount(Action<LibPlacenote.MapInfo[]> mapsLoaded)
+        {
+            if (!LibPlacenote.Instance.Initialized())
+            {
+                Debug.Log("SDK not yet initialized");
+                return false;
+            }
+            LibPlacenote.Instance.ListMaps(mapsLoaded);
+            return true;
+        }
+
+        #endregion Mapping utility
+
 
         private void ARFrameUpdated (UnityARCamera camera)
         {

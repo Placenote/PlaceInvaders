@@ -5,8 +5,6 @@ using UnityEngine;
 
 namespace GameplayNs
 {
-
-
     [System.Serializable]
     public class OnePlayerData
     {
@@ -15,7 +13,6 @@ namespace GameplayNs
         public int Kills;
 
         public bool IsPlayerDead;
-
 
         public void Reset ()
         {
@@ -40,6 +37,7 @@ namespace GameplayNs
     public class GameData
     {
         public GameStateId GameState = GameStateId.GameWaitingStart;
+
 
         #region Events section
         public enum SomethingId
@@ -69,24 +67,16 @@ namespace GameplayNs
                                                                    ((id) => Debug.Log ("Sent " + id));
         public event Action NotifySomeDataChanged = delegate { };
 
-        public int LocalizedPlayers;
-        public int PlayersInRoom;
-        public int MaxPlayersAllowed;
-
-        #endregion Events section
-
-        public void Reset ()
+        public void Reset()
         {
-            PlayerData.Reset ();
-            NotifySomeDataChanged ();
+            PlayerData.Reset();
+            NotifySomeDataChanged();
         }
 
-
-
-        public void OnPrepareGame ()
+        public void OnPrepareGame()
         {
             GameState = GameStateId.GameWaitingStart;
-            NotifySomethingHappened (SomethingId.GamePreparing);
+            NotifySomethingHappened(SomethingId.GamePreparing);
             if (PhotonNetwork.connected)
             {
                 LocalizedPlayers = 0;
@@ -96,28 +86,36 @@ namespace GameplayNs
 
         }
 
-        public void OnStartGame ()
+        public void OnStartGame()
         {
             GameState = GameStateId.GamePlaying;
-            NotifySomethingHappened (SomethingId.GameStart);
+            NotifySomethingHappened(SomethingId.GameStart);
         }
 
-        public void OnToMainMenu ()
+        public void OnToMainMenu()
         {
             GameState = GameStateId.GameWaitingStart;
-            NotifySomethingHappened (SomethingId.ToMainMenu);
+            NotifySomethingHappened(SomethingId.ToMainMenu);
         }
 
         /// <summary>
         /// Call DoNotifySomethingHappened action outside of this class
         /// </summary>
         /// <param name="id"></param>
-        public void NotifyWorldRootPlaced ()
+        public void NotifyWorldRootPlaced()
         {
-            NotifySomethingHappened (SomethingId.WorldRootPlaced);
+            NotifySomethingHappened(SomethingId.WorldRootPlaced);
         }
 
+        #endregion Events section
+
+
+
+
+
         #region data section, add new here
+
+
         [Tooltip ("public just for debug purposes")]
         public OnePlayerData PlayerData = new OnePlayerData ();
 
@@ -126,8 +124,6 @@ namespace GameplayNs
 
 
         #region properties section, add new here
-
-
 
         public int Kills
         {
@@ -149,7 +145,7 @@ namespace GameplayNs
         {
             if (PlayerData.Lives == 0 || !PlayerData.IsPlayerDead)
                 return false;
-
+            
             PlayerData.Lives--;
             PlayerData.IsPlayerDead = false;
             NotifySomethingHappened (SomethingId.PlayerResurrected);
@@ -175,6 +171,9 @@ namespace GameplayNs
         {
             get { return PlayerData.IsPlayerDead; }
         }
+        public int LocalizedPlayers;
+        public int PlayersInRoom;
+        public int MaxPlayersAllowed;
 
         public void UpdatePlayerAmounts ()
         {

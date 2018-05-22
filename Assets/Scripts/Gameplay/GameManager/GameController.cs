@@ -8,6 +8,7 @@ using UnityEngine.UI;
 using WeaponNs;
 using TargetNs;
 using PunServerNs;
+using Placenote;
 
 
 namespace GameplayNs
@@ -17,7 +18,6 @@ namespace GameplayNs
     /// "Scene-only Singleton"  -  cleared and destroyed when game object deleted.
     /// Initialized at Awake so should not be called from other Awake() functions except
     /// generated at scene definitelly after initialization.
-    ///
     /// </summary>
     public class GameController : MonoBehaviour
     {
@@ -36,8 +36,6 @@ namespace GameplayNs
         public GameData _data;
         [Range (5, 20)]
         public float spawnDistance;
-
-
 
         // Use this for initialization
         #region Standard Unity functions except used for Singletone implementation
@@ -66,12 +64,6 @@ namespace GameplayNs
 
         private void Update ()
         {
-            //            if (Players != null)
-            //                statusText.text = "Alive Pcount = " + Instance.Players.FindAll( el => el != null && !el.IsDead).Count;
-            //            else
-            //                statusText.text = "Players count = null";
-
-
             if (RunOnce)
             {
                 RunOnce = false;
@@ -79,6 +71,7 @@ namespace GameplayNs
             }
         }
         #endregion Standard Unity functions except used for Singletone implementation
+
 
         #region World root
         /// <summary>
@@ -90,7 +83,6 @@ namespace GameplayNs
         {
             get; private set;
         }
-
 
         /// <summary>
         /// called on initial setup procedures, during gameplay world
@@ -181,8 +173,6 @@ namespace GameplayNs
 
         }
 
-
-
         public static PlayerController GetRandomPlayer ()
         {
             // Debug.Log(" Player is "+ (CurrentPlayer==null));
@@ -201,7 +191,7 @@ namespace GameplayNs
             Data.Reset ();
             Data.Lives = Instance.InitialPlayerLifes;
             Data.Kills = 0;
-            Data.OnPrepareGame ();
+            Data.OnPrepareGame();
         }
 
         public static void StartGame ()
@@ -211,12 +201,15 @@ namespace GameplayNs
 
         public void QuitGame ()
         {
+            
             if (PhotonNetwork.connected)
             {
                 if (GameSetup.isLocalized)
                     Srv.TotalLocalizedPlayers = Srv.TotalLocalizedPlayers - 1;
             }
-
+            RemoveAllEnemies();
+            EnvironmentScannerController.Instance.StopUsingMap();
+            Data.OnToMainMenu();
             Srv.QuitToMainMenu ();
         }
 
@@ -229,6 +222,7 @@ namespace GameplayNs
 
         #endregion  Static members
 
+
         #region Weapons
 
         /// <summary>
@@ -239,16 +233,10 @@ namespace GameplayNs
             get { return CurrentPlayer.CurrentWeapon; }
         }
 
-
-
         #endregion Weapons
 
-        #region Enemy Spawning and Despawning
 
-        //        public static int RespawnPointsCount()
-        //        {
-        //            return Instance.__RespawnPointsCount();
-        //        }
+        #region Enemy Spawning and Despawning
 
         public static void CreateRandomEnemy ()
         {
@@ -268,11 +256,6 @@ namespace GameplayNs
         #endregion
 
         #region wrappers for using with Unity Event triggers
-        //        public int __RespawnPointsCount()
-        //        {
-        //            return Instance.Respawns.Count;
-        //        }
-
 
         public void __CreateRandomEnemyAtPoint ()
         {
@@ -292,7 +275,6 @@ namespace GameplayNs
                 newEnemy = Instantiate (prefab, WorldRootObject.transform, false);
                 newEnemy.transform.position = new Vector3 (spawnDistance * Mathf.Sin (angle), 0, spawnDistance * Mathf.Cos (angle));
                 newEnemy.transform.LookAt (Vector3.zero);
-                //Debug.LogError("CurrentPlayer.IsLocalPlayer branch....");
             }
             else
             {
@@ -304,14 +286,13 @@ namespace GameplayNs
                 newEnemy.transform.LookAt (Vector3.zero);
                 newEnemy.transform.parent = WorldRootObject.transform;
             }
-            // PhotonView.Get(newEnemy).viewID = PhotonNetwork.AllocateViewID();
-            //PhotonView.Get(newEnemy).TransferOwnership(0);
-
         }
+
         #endregion  wrappers for using with Unity Event triggers
 
 
         #region Singleton features implementation
+
         private static GameController instance;
         public static GameController Instance
         {
@@ -352,6 +333,7 @@ namespace GameplayNs
             }
 
         }
+
         #endregion Singletone Implementation
 
     }

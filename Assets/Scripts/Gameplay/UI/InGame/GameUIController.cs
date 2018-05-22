@@ -10,10 +10,11 @@ namespace GameUiNs
 {
     public class GameUIController : EventsSubscriber
     {
-
+        // External class references.
         public SrvController Srv;
         public GameSetupController GameSetup;
 
+        // Child object references.
         public GameObject DeathPanel;
         public GameObject GameOverPanel;
         public ShotButton ShotBtn;
@@ -22,19 +23,10 @@ namespace GameUiNs
         public GameObject MenuPanel;
         public Button StartGameBtn;
         public GameObject ButtonPanel;
-
-        // Mapping finish button
         public Button FinishMappingBtn;
-
-        // Main Menu button
         public Button MainMenuBtn;
-
-        // Text to guide user
         public Text HelperText;
-
-        // GameInfoPanel
         public Button OpenMenuBtn;
-
         Button shotBtn;
 
         void Start ()
@@ -47,14 +39,13 @@ namespace GameUiNs
             FinishMappingBtn.onClick.AddListener (MappingStop);
             StartGameBtn.onClick.AddListener (StartGame);
             MainMenuBtn.onClick.AddListener (GoToMainMenu);
-
             OpenMenuBtn.onClick.AddListener (ToggleGameMenu);
         }
+
         protected override void Update ()
         {
             base.Update ();
         }
-
 
         override protected void NotifySomethingHappened (GameData.SomethingId id)
         {
@@ -125,6 +116,9 @@ namespace GameUiNs
             }
         }
 
+
+        #region Button Onclick events
+
         private void MappingStop ()
         {
             FinishMappingBtn.gameObject.SetActive (false);
@@ -148,11 +142,11 @@ namespace GameUiNs
         {
             // Remove player is handeled by PlayerPhotonGenerator
             // Remove enemies
-            GameController.RemoveAllEnemies ();
+            GameSetup.QuitGame();
             GameController.Instance.QuitGame ();
-            GameController.Data.OnToMainMenu ();
         }
 
+        #endregion Button OnClick events
 
 
     }

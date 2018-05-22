@@ -10,8 +10,50 @@ namespace PunServerNs
 {
     public class SrvController : Photon.PunBehaviour
     {
+        // External class references.
+        public MainMenuUIController MainMenuUI;
+        public GameUIController GameUI;
+        public GameSetupController GameSetup;
 
-        // Room status is a custom property of the room that all clients can see
+
+        #region NetState
+
+        [Header("Setup connection here")]
+        [Tooltip("Only players with same GameNetVersion and PUN version can play with each other")]
+        public string GameNetVersion = "1.00";
+
+        /// <summary>
+        ///  Status of connection from ready to network game point of view,
+        ///  i. e. "connected" means "joined to room and ready to start the game" etc
+        /// </summary>
+        public NetGameStateId NetState
+        {
+            get { return _curConnectionState; }
+        }
+        void SetNetState(NetGameStateId newNetState, string message)
+        {
+            _curConnectionState = newNetState;
+            NetStateChanged(newNetState, message);
+            LastConnectionMessage = message;
+            Debug.Log("SetNetState: " + newNetState + ",'" + (message ?? "null") + "'");
+        }
+
+        event Action<NetGameStateId, string> NetStateChanged = delegate { };
+
+        [Header("Public for debug only")]
+        public NetGameStateId _curConnectionState;
+        public string LastConnectionMessage;
+
+        #endregion NetState
+
+
+        #region Room Info
+
+        // parameters of room
+        public string RoomName = "Untitled";
+        RoomOptions roomOptions;
+        TypedLobby lobby = TypedLobby.Default;
+
         public enum RoomStatus
         {
             Mapping,
@@ -33,19 +75,10 @@ namespace PunServerNs
 
         }
 
-        public MainMenuUIController MainMenuUI;
-        public GameUIController GameUI;
-        public GameSetupController GameSetup;
+        #endregion Room Info
 
 
-        [Header ("Setup connection here")]
-        [Tooltip ("Only players with same GameNetVersion and PUN version can play with each other")]
-        public string GameNetVersion = "1.00";
-
-        // parameters of room
-        public string RoomName = "Untitled";
-        RoomOptions roomOptions;
-        TypedLobby lobby = TypedLobby.Default;
+        #region Player values
 
         public int TotalLocalizedPlayers
         {
@@ -59,10 +92,7 @@ namespace PunServerNs
                 PhotonNetwork.room.SetCustomProperties (roomStatus);
             }
         }
-
-
-        // Player values
-
+  
         public int MaxPlayersInRoom
         {
             get { return PhotonNetwork.room.MaxPlayers; }
@@ -75,48 +105,22 @@ namespace PunServerNs
             private set { }
         }
 
-        // Host vs regular player bools
+        #endregion Player values
+
+        // Host vs regular player 
         public bool IsHost
         {
             get; private set;
         }
+
         public bool IsQuitingToMainMenu
         {
             get; private set;
         }
 
-        // GPS
-        public float latitude = 0;
-        public float longitude = 0;
-        public float GPSThreshold { get; private set; }
-
-        /// <summary>
-        ///  Status of connection from ready to network game point of view,
-        ///  i. e. "connected" means "joined to room and ready to start the game" etc
-        /// </summary>
-        public NetGameStateId NetState
-        {
-            get { return _curConnectionState; }
-        }
-        void SetNetState (NetGameStateId newNetState, string message)
-        {
-            _curConnectionState = newNetState;
-            NetStateChanged (newNetState, message);
-            LastConnectionMessage = message;
-            Debug.Log ("SetNetState: " + newNetState + ",'" + (message ?? "null") + "'");
-        }
-
-
-        event Action<NetGameStateId, string> NetStateChanged = delegate { };
-
-
-
-        [Header ("Public for debug only")]
-        public NetGameStateId _curConnectionState;
-        public string LastConnectionMessage;
-
 
         #region Monobehavior  standard methods
+
         void Awake ()
         {
             PhotonNetwork.offlineMode = true;
@@ -124,8 +128,9 @@ namespace PunServerNs
 
             // #Critical
             // this makes sure we can use PhotonNetwork.LoadLevel() on the master client and all clients in the same room sync their level automatically
-            PhotonNetwork.automaticallySyncScene = false;     //TODO The tutorial says this should be true. Not sure
+            PhotonNetwork.automaticallySyncScene = false;  
         }
+
         void Start ()
         {
             // PhotonNetwork.connectionState = new ConnectionState();
@@ -154,9 +159,19 @@ namespace PunServerNs
 
         #endregion  Monobehavior  standard methods
 
+
+        #region GPS
+
+        // GPS
+        public float latitude = 0;
+        public float longitude = 0;
+        public float GPSThreshold { get; private set; }
+
         // TODO Move this
         private IEnumerator StartLocationService ()
         {
+            latitude = 43.4513604f;
+            longitude = -80.49861820000001f; // For debug
             if (!Input.location.isEnabledByUser)
             {
                 Debug.Log ("User has not enabled G" +
@@ -185,8 +200,10 @@ namespace PunServerNs
             }
 
             latitude = Input.location.lastData.latitude;
-            longitude = Input.location.lastData.latitude;
+            longitude = Input.location.lastData.longitude;
         }
+
+        #endregion GPS
 
 
         #region Public Methods
@@ -261,6 +278,7 @@ namespace PunServerNs
 
         #endregion  Public Methods
 
+
         #region Photon callbacks
 
         public override void OnConnectionFail (DisconnectCause cause)
@@ -268,6 +286,7 @@ namespace PunServerNs
             Debug.Log ("------ OnConnectionFail:" + cause);
             SetNetState (NetGameStateId.Failed, "Failed connection:" + cause.ToString ());
         }
+
         public override void OnFailedToConnectToPhoton (DisconnectCause cause)
         {
 
@@ -280,7 +299,6 @@ namespace PunServerNs
             Debug.Log ("--------- OnConnectedToPhoton:---------------------");
             SetNetState (NetGameStateId.Connecting, "Connecting to Photon");
         }
-
 
         /// <summary>
         /// Callback when player joins lobby (Joining lobby is automatic after connecting to photon).
@@ -297,10 +315,8 @@ namespace PunServerNs
                 roomOptions.CustomRoomProperties = new ExitGames.Client.Photon.Hashtable (1) { { "GPS", roomGPS } }; // add this line
                 PhotonNetwork.CreateRoom (RoomName, roomOptions, lobby);
             }
-
             SetNetState (NetGameStateId.Connecting, "Joined Lobby");
         }
-
 
         public override void OnConnectedToMaster ()
         {
@@ -309,7 +325,11 @@ namespace PunServerNs
             SetNetState (NetGameStateId.Connecting, "Connected to master server");
         }
 
-
+        /// <summary>
+        /// Callback when player joins a room. If player is host it starts mapping.
+        /// If the player is not the host it updates on screen text according to what state
+        /// the room is in. Then it updates the UI with PrepareGame().
+        /// </summary>
         override public void OnJoinedRoom ()
         {
             SetNetState (NetGameStateId.ConnectedInRoom,
@@ -406,7 +426,6 @@ namespace PunServerNs
             Disconnect ();
             MainMenuUI.FailToCreateRoom ();
         }
-
 
         #endregion Photon callbacks
 
