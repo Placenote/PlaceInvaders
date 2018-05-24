@@ -122,13 +122,13 @@ namespace ARKitSupportNs
 
                     // prioritize reults types
                     ARHitTestResultType[] resultTypes = {
-                        ARHitTestResultType.ARHitTestResultTypeExistingPlaneUsingExtent, 
+                        ARHitTestResultType.ARHitTestResultTypeExistingPlaneUsingExtent,
                         // if you want to use infinite planes use this:
                         //ARHitTestResultType.ARHitTestResultTypeExistingPlane,
-                        ARHitTestResultType.ARHitTestResultTypeHorizontalPlane, 
+                        ARHitTestResultType.ARHitTestResultTypeEstimatedHorizontalPlane,
                         ARHitTestResultType.ARHitTestResultTypeFeaturePoint
-                    }; 
-					
+                    };
+
                     foreach (ARHitTestResultType resultType in resultTypes)
                     {
                         if (HitTestWithResultType (point, resultType))
@@ -146,4 +146,3 @@ namespace ARKitSupportNs
 
     }
 }
-

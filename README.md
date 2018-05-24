@@ -1,76 +1,104 @@
 # Place Invaders
 
-### Multiplayer Space Invaders using Placenote Unity SDK with ARkit and Photon
+### Multiplayer Place Invaders using Placenote Unity SDK with ARkit and Photon
 
-Placenote SDK: 1.4.2
+Placenote SDK: 1.5.0
 
-Project's Unity Version: 2017.3.1f1
+Project's Unity Version: 2018.1.1f1
 
 Xcode: 9.3
 
 Devices tested OS: 11.3
 
+<br/>
 
-Steps to Deploy on 2 devices:
+### Steps to Deploy on 2 devices:
 
-***Before compiling to device:
+##### Before compiling to device:
 
-Register for a Free Photon Multiplayer Account and place your account's "AppId" into the "PhotonServerSettings" in the editor.  Now every device your demo app is compiled to will be in the same "PrototypeRoom".
+1. Register for a Free Photon Multiplayer Account and place your account's "AppId" into the "PhotonServerSettings" in the editor.
 
 <img width="1101" alt="photon appid" src="https://user-images.githubusercontent.com/13069075/38306822-9d5942ca-37c6-11e8-95ee-387d4eb2a614.png">
 
-Register for a free Placenote account and get your api key here: https://developer.placenote.com. To Add your Placenote API key, find the ARCameraManager object in the Scene hierarchy and add your API key under the LibPlacenote component in the Inspector Panel.
+2. Register for a free Placenote account and get your api key here: https://developer.placenote.com. To Add your Placenote API key, find the ARCameraManager object in the Scene hierarchy and add your API key under the LibPlacenote component in the Inspector Panel.
 
-Build the Unity project by Switching Platform to iOS in the Build Settings and click build to generate the XCode project. To build and run the XCode, follow the instructions on this page:
+3. Build the Unity project by Switching Platform to iOS in the Build Settings and click build to generate the XCode project. To build and run the XCode, follow the instructions on this page:
 https://placenote.com/install/unity/build-xcode/
 
-***Playing the Game:
+<br/>
 
-Step 1.): open Placenote Invaders on both phones,
+**You will also need to add a "Privacy - Location When In Use Usage Description" key into your *Info.plist*. (This is so that you will only see photon rooms that are close by)**
 
-Step 2.) Player 1 and PLayer 2 must tap the top left "Multiplayer Button" (3 horizontal lines) and press the the "connect" button on right of the Multiplayer Screen to join the "PrototypeRoom".  *Note, both players must be connected to the Prototype Room before Player 1 scans the room.
+##### Playing the Game:
 
-Step 3.) Player 1 will press the "Placenote Scan button" (2nd button) then scan play area - moving side to side.  When finished scanning, Player 1 will press "Placenote Scan Button" again to complete the scan and save the space's data,
+1. Open Place Invaders on both phones.
 
-Step 4.) Now player 1 and player 2 will press the "Play" button (3rd button).
-(and of course look at the same scanned area to synch location and position)
+2. Player 1 must press the *Host Game* button.
 
+![PI_Title_Screen](/Screenshots/TitleScreen.png?raw=true "PI_Title_Screen")
 
-Current Simple Placenote UI:
+3. Then Player 1 must enter a room name and press the arrow to create the room.
 
-![placenote simple ui](https://user-images.githubusercontent.com/13069075/38260093-8cc1da36-371b-11e8-94b6-1694eae0931e.png)
+![PI_Hosting_Room](/Screenshots/HostRoom.png?raw=true "PI_Hosting_Room")
 
+4. Player 2 must press the *Join Game* button. They will then be able to join Player 1's room once it is created.
 
+![PI_View_Rooms](/Screenshots/ViewRooms.png?raw=true "PI_View_Rooms")
 
-Used technologies:
+5. Player 1 will now be in the game and they must scan the play area - moving side to side.  When finished scanning, Player 1 will press the "Finish Mapping" button to complete the scan and save the map's data.
 
-ArKit: https://assetstore.unity.com/packages/essentials/tutorial-projects/unity-arkit-plugin-92515
+![PI_Mapping](/Screenshots/Mapping.png?raw=true "PI_Mapping")
 
-Placenote (creating AR maps): https://github.com/Placenote/PlacenoteSDK-Unity
+6. Now both players must look at the same scanned area to synch location and position. Then Player 1 can press the start button.
 
-Photon (for multiplaying): https://assetstore.unity.com/packages/tools/network/photon-unity-networking-free-1786 
+![PI_Gameplay](/Screenshots/Gameplay.png?raw=true "PI_Gameplay")
 
-Space Invader Models with animation: https://www.turbosquid.com/3d-models/space-invader-set-3d-model/768637
+*Note:* <br/>
+  *- There is also a single player option. To play, press Single Player and follow the host steps.* <br/>
+  *- Player 2 can join and leave at anytime. They just need to localize before they can play.*
 
+<br/>
 
-Scripts: 
+### Used technologies:
 
-GameController - control game logic: starting game, creating enemies, managing players (creating new, registering,removing)
+**ArKit**: https://assetstore.unity.com/packages/essentials/tutorial-projects/unity-arkit-plugin-92515
 
-PlayerController - control current player: lifes, fighting with enemies, synchronizing with Photon
+**Placenote** (creating AR maps): https://github.com/Placenote/PlacenoteSDK-Unity
 
-WeaponController - Shooting enemies and call missing or hit actions on AnimatedGun script
+**Photon** (for Multiplayer): https://assetstore.unity.com/packages/tools/network/photon-unity-networking-free-1786
 
-AnimatedGun - make shots: damage enemies, shooting animation, control time between shots, synchronize shots with Photon
+**Space Invader Models and Animations**: https://www.turbosquid.com/3d-models/space-invader-set-3d-model/768637
 
-EnemyAI -   each enemy has this component, that control enemies behaviour (attacking players, moving), contain enemy properties( AttackPower, AttackTimeLimit, Speed etc.) 
+<br/>
 
-EnemyState - each enemy has this component, contain enemies health, and when player hit, decrease enemy health, when health <= 0, animated destroying enemy 
+### Important Scripts:
 
-GameData - Simple class mostly for UI  to store game data with support of notifications about changes, UI component have to be responsible itself to decide when it have be notified and which data should be shown
+##### *The important folders are Scripts/Gameplay, Scripts/PlacenoteSample, and Scripts/ServerController*
 
-EnvironmentScannerController - managing Placenote (start scanning, finish scanning, get maps count, loading latest map,stop using map, delete all maps), starting ARKIt, control Placenote status
+**GameController.cs**: controls game logic including starting game, creating enemies, and managing players (creating new, registering,removing).
 
-UiController -  control UI element: buttons, text labels, etc. Performs buttons click actions. Shows debug texts, informations about processes, placenote status on text labels
+**GameSetupController.cs**: controls EnvironmentScannerController so that the map can be setup for gameplay. Starts gameplay after mapping.
 
-*Note: the scripts are commented to provide further insight to how this demo works.
+**GameData.cs**: stores game data. Also creates events about changes in game data and game state for UI components to update.
+
+**EnvironmentScannerController.cs**: manages Placenote (start mapping, finish mapping, get maps count, loading latest map,stop using map, delete all maps), starting ARKIt, and controls Placenote status.
+
+**ServerController.cs**: controls photon connection, and manages room joining and creation.
+
+**PlayerPhotonGenerator.cs**: controls spawning of players.
+
+**PlayerController.cs**: controls current player including lives, fighting with enemies, and synchronizing with Photon.
+
+**WeaponController.cs**: shooting enemies and call missing or hit actions on AnimatedGun script.
+
+**AnimatedGun.cs**: creates shots that damage enemies. Also controls shooting animation, control time between shots, and synchronization shots with Photon.
+
+**EnemyAI.cs**: controls enemies behaviour (attacking players, moving), and contains enemy properties( AttackPower, AttackTimeLimit, Speed etc.).
+
+**EnemyState.cs**: contains enemies health, player shot interaction, and enemy death.
+
+**RespawnPoint.cs**: controls spawn rate of enemy spawning.
+
+**MainMenuUIController.cs/GameUIController.cs**: controls UI element: buttons, text labels, etc. Performs buttons click actions.
+
+*Note: This project is being updated, and not everything is fully commented or organized. The scripts will be commented to provide further insight to how this demo works.*

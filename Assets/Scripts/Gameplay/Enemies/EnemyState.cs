@@ -12,48 +12,47 @@ namespace EnemiesNs
         public float CurrentHealth = 1f;
         public GameObject DeathPrefab;
 
-        public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+        public void OnPhotonSerializeView (PhotonStream stream, PhotonMessageInfo info)
         {
-            
-
             if (stream.isWriting)
             {
-                stream.SendNext(CurrentHealth);
+                stream.SendNext (CurrentHealth);
             }
             else
             {
-                this.CurrentHealth = (float)stream.ReceiveNext();
+                this.CurrentHealth = (float)stream.ReceiveNext ();
             }
         }
 
-        private void Update()
+        private void Update ()
         {
             if (!(CurrentHealth < 0)) return;
-            
-            
-            if (DeathPrefab != null)
-                Instantiate(DeathPrefab, transform.position, transform.rotation);
 
-            Destroy(gameObject);
+            if (DeathPrefab != null)
+                if (PhotonNetwork.connected)
+                    PhotonNetwork.Instantiate ("BigExplosion", transform.position, transform.rotation, 0);
+                else
+                    Instantiate (DeathPrefab, transform.position, transform.rotation);
+
+            Destroy (gameObject);
         }
 
-        public void Damage(float damage)
+        public void Damage (float damage)
         {
             if (CurrentHealth - damage < 0)
             {
                 if (0 <= CurrentHealth)
                     GameController.Data.Kills++;
-              
             }
 
             if (PhotonNetwork.offlineMode || !PhotonNetwork.connected)
-                DecreseHealth(damage);
+                DecreseHealth (damage);
             else
-                photonView.RPC("DecreseHealth", PhotonTargets.All, damage);
+                photonView.RPC ("DecreseHealth", PhotonTargets.All, damage);
         }
 
         [PunRPC]
-        private void DecreseHealth(float healthDecreaseVal)
+        private void DecreseHealth (float healthDecreaseVal)
         {
             CurrentHealth -= healthDecreaseVal;
         }

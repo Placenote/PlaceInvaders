@@ -141,8 +141,10 @@ MonoBehaviour:
   m_camera: {fileID: 20477165370597950}
   startAlignment: 0
   planeDetection: 1
+  detectionImages: {fileID: 0}
   getPointCloud: 1
   enableLightEstimation: 1
+  enableAutoFocus: 1
 --- !u!114 &114272985623773098
 MonoBehaviour:
   m_ObjectHideFlags: 1

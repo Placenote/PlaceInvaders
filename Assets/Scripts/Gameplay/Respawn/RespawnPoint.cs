@@ -7,48 +7,43 @@ namespace EnemiesNs
 {
     public class RespawnPoint : MonoBehaviour
     {
-        public int Id;
-        public float TimeOut = 5;
-        // Use this for initialization
-        
-        void Start()
+        private float TimeBetweenSpawns = 8;
+
+        void Start ()
         {
-            /*if (Id == null)
-                Id = gameObject.name;
-                */
-            GameController.RegisterRespawnPoint(this);
-            StartCoroutine(Creation());
+            GameController.RegisterRespawnPoint (this);
+            StartCoroutine (Creation ());
         }
 
-        IEnumerator Creation()
+        IEnumerator Creation ()
         {
             yield return null;
             while (true)
             {
-                yield return new WaitForSeconds(TimeOut);
                 if (GameController.Data.GameState == GameStateId.GamePlaying)
-                    GameController.CreateRandomEnemy();
+                    GameController.CreateRandomEnemy ();
+                yield return new WaitForSeconds (TimeBetweenSpawns);
             }
         }
 
         bool DoRestart = true;
-        private void OnDisable()
+        private void OnDisable ()
         {
-            StopCoroutine(Creation());
+            StopCoroutine (Creation ());
             DoRestart = false;
         }
 
-        private void OnEnable()
+        private void OnEnable ()
         {
             DoRestart = true;
         }
-        // Update is called once per frame
-        void Update()
+
+        void Update ()
         {
             if (DoRestart && GameController.IsGamePlaying)
             {
                 DoRestart = false;
-                StartCoroutine(Creation());
+                StartCoroutine (Creation ());
             }
         }
     }

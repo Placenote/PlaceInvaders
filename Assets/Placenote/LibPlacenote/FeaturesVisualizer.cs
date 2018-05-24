@@ -16,9 +16,14 @@ public class FeaturesVisualizer : MonoBehaviour, PlacenoteListener
 	{
 		sInstance = this;
 
-		// This is required for OnPose and OnStatusChange to be triggered
-		LibPlacenote.Instance.RegisterListener (this);
+
 	}
+
+    void Start ()
+    {
+        // This is required for OnPose and OnStatusChange to be triggered
+        LibPlacenote.Instance.RegisterListener(this);
+    }
 
 	void Update ()
 	{
@@ -47,6 +52,17 @@ public class FeaturesVisualizer : MonoBehaviour, PlacenoteListener
 	public static void DisablePointcloud ()
 	{
 		sInstance.CancelInvoke ();
+		clearPointcloud ();
+	}
+
+
+	/// <summary>
+	///  Clear currently rendering feature/landmark pointcloud
+	/// </summary>
+	public static void clearPointcloud() 
+	{
+		MeshFilter mf = sInstance.mMap.GetComponent<MeshFilter> ();
+		mf.mesh.Clear ();
 	}
 
 	public void OnPose (Matrix4x4 outputPose, Matrix4x4 arkitPose)
@@ -57,25 +73,8 @@ public class FeaturesVisualizer : MonoBehaviour, PlacenoteListener
 	{
 		if (currStatus == LibPlacenote.MappingStatus.WAITING) {
 			Debug.Log ("Session stopped, resetting pointcloud mesh.");
-			MeshFilter mf = mMap.GetComponent<MeshFilter> ();
-			mf.mesh.Clear ();
+			clearPointcloud ();
 		}
-	}
-
-	public void ClearPoints()
-	{
-		Mesh mesh = new Mesh ();
-
-		MeshFilter mf = mMap.GetComponent<MeshFilter> ();
-		if (mf == null) {
-			mf = mMap.AddComponent<MeshFilter> ();
-		} 
-		mf.mesh = mesh;
-
-		MeshRenderer mr = mMap.GetComponent<MeshRenderer> ();
-		if (mr == null) {
-			mr = mMap.AddComponent<MeshRenderer> ();
-		} 
 	}
 
 	public void DrawMap ()

@@ -11,7 +11,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9f3758f8f58fdef43803eb9be1df0608, type: 3}
   m_Name: PhotonServerSettings
   m_EditorClassIdentifier: 
-  AppID: PUT YOUR PHOTON API KEY HERE
+  AppID: 
   VoiceAppID: 
   ChatAppID: 
   HostType: 1
@@ -23,8 +23,8 @@ MonoBehaviour:
   VoiceServerPort: 5055
   JoinLobby: 1
   EnableLobbyStatistics: 0
-  PunLogging: 0
-  NetworkLogging: 2
+  PunLogging: 2
+  NetworkLogging: 0
   RunInBackground: 1
   RpcList:
   - Chat
@@ -49,4 +49,14 @@ MonoBehaviour:
   - TaggedPlayer
   - ScanningStarted
   - ActivateEnvironmentScanningBtnRPC
+  - LeaveRoom
+  - KickPlayer
+  - PrepareGame
+  - TestRPC
+  - EnvironmentScanningFinishRPC
+  - PlayerIsReady
+  - StartGameRPC
+  - EnvironmentMappingCompleteRPC
+  - MappingStarted
+  - HostLeftRPC
   DisableAutoOpenWizard: 1

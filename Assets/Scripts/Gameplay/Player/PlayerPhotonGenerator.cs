@@ -8,70 +8,71 @@ namespace PlayerNs
     {
         public GameObject PlayerPrefab;
         PlayerController Player;
-        // Use this for initialization
-        void Start()
-        {
 
-        }
-
-        virtual protected void OnGameStart()
+        virtual protected void OnGameStart ()
         {
             GameObject player = null;
             if (Player != null)
             {
-                //GameController.RemovePlayer(Player);
-                Destroy(Player.gameObject);
+                Destroy (Player.gameObject);
             }
             if (PhotonNetwork.offlineMode || !PhotonNetwork.connected)
-                player = Instantiate<GameObject>(PlayerPrefab);
+                player = Instantiate<GameObject> (PlayerPrefab);
             else
-                player = PhotonNetwork.Instantiate(PlayerPrefab.name, Vector3.zero, Quaternion.identity, 0);
+                player = PhotonNetwork.Instantiate (PlayerPrefab.name, Vector3.zero, Quaternion.identity, 0);
 
-            if (!string.IsNullOrEmpty(PhotonNetwork.playerName))
+            if (!string.IsNullOrEmpty (PhotonNetwork.playerName))
             {
                 player.name = PhotonNetwork.playerName;
             }
-
-            Player = player.GetComponent<PlayerController>();
-
+            Player = player.GetComponent<PlayerController> ();
         }
 
-        public override void OnJoinedRoom()
+        public override void OnJoinedRoom ()
         {
             if (GameController.IsGamePlaying)
             {
-                OnGameStart();
+                OnGameStart ();
             }
         }
 
-        public override void OnDisconnectedFromPhoton()
+        public override void OnDisconnectedFromPhoton ()
         {
             if (GameController.IsGamePlaying)
             {
-                OnGameStart();
+                OnGameStart ();
             }
         }
-
 
 
         #region event handlers to override
 
-
-
-        virtual protected void NotifySomethingHappened(GameData.SomethingId id)
+        virtual protected void NotifySomethingHappened (GameData.SomethingId id)
         {
-            if (id == GameData.SomethingId.GameStart)
-                OnGameStart();
+            if (id == GameData.SomethingId.GamePreparing)
+                OnGameStart ();
             else if (id == GameData.SomethingId.GameOver && Player != null)
             {
                 if (PhotonNetwork.offlineMode || !PhotonNetwork.connected)
-                    Destroy(Player.gameObject);
+                    Destroy (Player.gameObject);
                 else
-                    Network.Destroy(Player.gameObject);
+                    Network.Destroy (Player.gameObject);
+            }
+            else if (id == GameData.SomethingId.ToMainMenu && Player != null)
+            {
+                if (PhotonNetwork.offlineMode || !PhotonNetwork.connected)
+                {
+                    Destroy (Player.gameObject);
+                }
+                else
+                {
+                    GameController.RemovePlayer (Player);
+                    PhotonNetwork.Destroy (Player.gameObject);
+                }
             }
 
-
         }
+
         #endregion event handlers to override
 
 
@@ -79,32 +80,32 @@ namespace PlayerNs
 
         bool doSubscibe = true;
 
-
-        private void OnEnable()
+        private void OnEnable ()
         {
             doSubscibe = true;
         }
-        private void OnDisable()
+
+        private void OnDisable ()
         {
             if (GameController.Data != null)
                 GameController.Data.NotifySomethingHappened -= NotifySomethingHappened;
         }
 
-        protected virtual void Subscribe()
+        protected virtual void Subscribe ()
         {
             GameController.Data.NotifySomethingHappened += NotifySomethingHappened;
         }
 
-
-        void Update()
+        void Update ()
         {
             if (doSubscibe)
             {
                 doSubscibe = false;
-                Subscribe();
+                Subscribe ();
 
             }
         }
+
         #endregion Subscribing to events
     }
 }
