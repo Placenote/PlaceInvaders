@@ -7,21 +7,20 @@ namespace CommonNs
 {
     public class UnityEditorOnlyObjects : MonoBehaviour
     {
-        
         public List<GameObject> ObjectsToDelete;
-        private void Awake()
+        private void Awake ()
         {
-           DisableIfNotEditor();
+            DisableIfNotEditor ();
         }
 
-        void Start()
+        void Start ()
         {
-            DestroyIfNotEditor();
+            DestroyIfNotEditor ();
         }
 
-        void DisableIfNotEditor()
+        void DisableIfNotEditor ()
         {
-          
+
 #if DESTROY_ANYWAY || !UNITY_EDITOR
             for (int i=0; i< ObjectsToDelete.Count; i++  )
             if(ObjectsToDelete[i] != null)
@@ -29,20 +28,14 @@ namespace CommonNs
 #endif
         }
 
-        void DestroyIfNotEditor()
+        void DestroyIfNotEditor ()
         {
-           
 
 #if DESTROY_ANYWAY || !UNITY_EDITOR
             for (int i = 0; i < ObjectsToDelete.Count; i++)
                 if (ObjectsToDelete[i] != null)
                     Destroy(ObjectsToDelete[i]);
 #endif
-        }
-
-        void Update()
-        {
-
         }
     }
 }

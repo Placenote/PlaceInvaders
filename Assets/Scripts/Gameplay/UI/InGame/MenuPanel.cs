@@ -28,7 +28,6 @@ namespace GameUiNs
                 PlayersInRoom.text = "";
                 MaxPlayersAllowed.text = "";
             }
-
         }
 
         override protected void NotifySomeDataChanged ()
@@ -45,8 +44,5 @@ namespace GameUiNs
         {
             base.Update ();
         }
-
     }
 }
-
-

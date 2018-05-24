@@ -14,20 +14,20 @@ namespace EnemiesNs
 
         public void OnPhotonSerializeView (PhotonStream stream, PhotonMessageInfo info)
         {
-            
-
-            if (stream.isWriting) {
-            	stream.SendNext (CurrentHealth);
-            } else {
-                this.CurrentHealth = (float) stream.ReceiveNext ();
+            if (stream.isWriting)
+            {
+                stream.SendNext (CurrentHealth);
+            }
+            else
+            {
+                this.CurrentHealth = (float)stream.ReceiveNext ();
             }
         }
 
         private void Update ()
         {
             if (!(CurrentHealth < 0)) return;
-            
-            
+
             if (DeathPrefab != null)
                 if (PhotonNetwork.connected)
                     PhotonNetwork.Instantiate ("BigExplosion", transform.position, transform.rotation, 0);
@@ -39,7 +39,8 @@ namespace EnemiesNs
 
         public void Damage (float damage)
         {
-            if (CurrentHealth - damage < 0) {
+            if (CurrentHealth - damage < 0)
+            {
                 if (0 <= CurrentHealth)
                     GameController.Data.Kills++;
             }

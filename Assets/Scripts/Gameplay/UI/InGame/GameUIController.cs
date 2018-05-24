@@ -11,7 +11,7 @@ namespace GameUiNs
     public class GameUIController : EventsSubscriber
     {
         // External class references.
-        public SrvController Srv;
+        public ServerController Server;
         public GameSetupController GameSetup;
 
         // Child object references.
@@ -31,8 +31,8 @@ namespace GameUiNs
 
         void Start ()
         {
-            if (Srv == null)
-                Srv = FindObjectOfType<SrvController> ();
+            if (Server == null)
+                Server = FindObjectOfType<ServerController> ();
             if (GameSetup == null)
                 GameSetup = FindObjectOfType<GameSetupController> ();
             shotBtn = ShotBtn.GetComponent<Button> ();
@@ -76,12 +76,13 @@ namespace GameUiNs
                     ShotBtn.gameObject.SetActive (false);
                     ShotBtn.enabled = false;
                     shotBtn.interactable = false;
-                    InfoPanel.gameObject.SetActive (true);
+                    InfoPanel.gameObject.SetActive (false);
+                    OpenMenuBtn.gameObject.SetActive (true);
                     CrossHairPanel.gameObject.SetActive (false);
                     HelperText.gameObject.SetActive (true);
                     if (PhotonNetwork.connected)
                     {
-                        if (Srv.IsHost)
+                        if (Server.IsHost)
                             FinishMappingBtn.gameObject.SetActive (true);
                     }
                     else
@@ -107,6 +108,7 @@ namespace GameUiNs
                     ShotBtn.enabled = false;
                     shotBtn.interactable = false;
                     InfoPanel.gameObject.SetActive (false);
+                    OpenMenuBtn.gameObject.SetActive (false);
                     CrossHairPanel.gameObject.SetActive (false);
                     FinishMappingBtn.gameObject.SetActive (false);
                     StartGameBtn.gameObject.SetActive (false);
@@ -140,14 +142,10 @@ namespace GameUiNs
 
         private void GoToMainMenu ()
         {
-            // Remove player is handeled by PlayerPhotonGenerator
-            // Remove enemies
-            GameSetup.QuitGame();
+            GameSetup.QuitGame ();
             GameController.Instance.QuitGame ();
         }
 
         #endregion Button OnClick events
-
-
     }
 }

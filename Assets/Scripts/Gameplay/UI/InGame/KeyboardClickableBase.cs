@@ -8,69 +8,60 @@ using System;
 
 namespace GameUiNs
 {
-
-    public class KeyboardClickableBase : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerClickHandler 
+    public class KeyboardClickableBase : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerClickHandler
     {
         public bool SimulateClickWithKeyboard;
         public KeyCode ClickReplacement;
-        //   public Button button;
 
-
-        private void LogNotOverriden(string finctionName)
+        private void LogNotOverriden (string finctionName)
         {
-            Debug.LogError(this.GetType().ToString() + " at gameobject " + gameObject.name + finctionName+ " is not overriden ");
+            Debug.LogError (this.GetType ().ToString () + " at gameobject " + gameObject.name + finctionName + " is not overriden ");
 
         }
-        virtual public void OnPointerDown(PointerEventData eventData)
+        virtual public void OnPointerDown (PointerEventData eventData)
         {
-            LogNotOverriden("OnPointerDown");
+            LogNotOverriden ("OnPointerDown");
         }
 
-        virtual public void OnPointerUp(PointerEventData eventData)
+        virtual public void OnPointerUp (PointerEventData eventData)
         {
-            LogNotOverriden("OnPointerUp");
+            LogNotOverriden ("OnPointerUp");
         }
 
-        virtual public void OnPointerClick(PointerEventData eventData)
+        virtual public void OnPointerClick (PointerEventData eventData)
         {
-            LogNotOverriden("OnPointerClick");
+            LogNotOverriden ("OnPointerClick");
         }
 
 
 #if UNITY_EDITOR
 
-        private void Update()
+        private void Update ()
         {
             if (SimulateClickWithKeyboard)
             {
-                if (Input.GetKeyDown(ClickReplacement))
+                if (Input.GetKeyDown (ClickReplacement))
                 {
-                    ExecuteEvents.Execute(gameObject, new PointerEventData(EventSystem.current),
+                    ExecuteEvents.Execute (gameObject, new PointerEventData (EventSystem.current),
                         ExecuteEvents.pointerEnterHandler);
 
-                    ExecuteEvents.Execute(gameObject, new PointerEventData(EventSystem.current),
+                    ExecuteEvents.Execute (gameObject, new PointerEventData (EventSystem.current),
                         ExecuteEvents.pointerDownHandler);
                 }
 
-                if (Input.GetKeyUp(ClickReplacement))
+                if (Input.GetKeyUp (ClickReplacement))
                 {
-                    ExecuteEvents.Execute(gameObject, new PointerEventData(EventSystem.current),
+                    ExecuteEvents.Execute (gameObject, new PointerEventData (EventSystem.current),
                           ExecuteEvents.pointerUpHandler);
 
-                    ExecuteEvents.Execute(gameObject, new PointerEventData(EventSystem.current),
+                    ExecuteEvents.Execute (gameObject, new PointerEventData (EventSystem.current),
                             ExecuteEvents.pointerClickHandler);
 
-                    ExecuteEvents.Execute(gameObject, new PointerEventData(EventSystem.current),
+                    ExecuteEvents.Execute (gameObject, new PointerEventData (EventSystem.current),
                         ExecuteEvents.pointerExitHandler);
                 }
-
             }
-
-
         }
-
-
 #endif
-
     }
 }

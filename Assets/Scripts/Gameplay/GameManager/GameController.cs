@@ -10,7 +10,6 @@ using TargetNs;
 using PunServerNs;
 using Placenote;
 
-
 namespace GameplayNs
 {
     /// <summary>
@@ -22,7 +21,7 @@ namespace GameplayNs
     public class GameController : MonoBehaviour
     {
         public int InitialPlayerLifes = 10;
-        public SrvController Srv;
+        public ServerController Server;
         public GameSetupController GameSetup;
 
         [Header ("Setup enemies here")]
@@ -39,22 +38,21 @@ namespace GameplayNs
 
         // Use this for initialization
         #region Standard Unity functions except used for Singletone implementation
+
         bool RunOnce = true;
 
         void Start ()
         {
-            if (Srv == null)
-                Srv = FindObjectOfType<SrvController> ();
+            if (Server == null)
+                Server = FindObjectOfType<ServerController> ();
             if (GameSetup == null)
                 GameSetup = FindObjectOfType<GameSetupController> ();
         }
 
         /// <summary>
         /// To do some initialization which requires that all Awake(), Start() etc
-        /// was already
-        /// good place to wait network connection before starting gameplay
+        /// was already good place to wait network connection before starting gameplay
         /// </summary>
-        /// <returns></returns>
         IEnumerator Initialize ()
         {
             yield return null;
@@ -70,10 +68,12 @@ namespace GameplayNs
                 StartCoroutine (Initialize ());
             }
         }
+
         #endregion Standard Unity functions except used for Singletone implementation
 
 
         #region World root
+
         /// <summary>
         /// direct changing position/rotation is forbidden. Reason:
         /// it have to be done either by positioning system or with initial setup of location
@@ -95,11 +95,10 @@ namespace GameplayNs
             WorldRootObject.SetupWorldRootCoordinates (newPos, newRot);
         }
 
-
         #endregion World root
 
-        #region Other static members
 
+        #region Other static members
 
         public static GameData Data
         {
@@ -150,7 +149,7 @@ namespace GameplayNs
             }
             int idx = Instance.Players.FindIndex ((el) => el != null && el.Equals (player));
             if (idx >= 0)
-                Instance.Players [idx] = player;
+                Instance.Players[idx] = player;
             else
                 Instance.Players.Add (player);
 
@@ -162,28 +161,22 @@ namespace GameplayNs
         {
             if (player == null)
                 Instance.Players.RemoveAll (el => el == null);
-
-            //if (player.IsLocalPlayer || player.IsCurrentNetworkPlayer)
             if (player.Equals (CurrentPlayer))
                 CurrentPlayer = null;
             if (Instance.Players.Remove (player))
                 Debug.Log ("------------ Removed  player " + player.gameObject.name + " --------------");
             else
                 Debug.Log ("------------ Failed Removing  player " + player.gameObject.name + "--------------");
-
         }
 
         public static PlayerController GetRandomPlayer ()
         {
-            // Debug.Log(" Player is "+ (CurrentPlayer==null));
             var filteredPlayers = Instance.Players.FindAll (el => el != null && !el.IsDead);
+            Debug.Log ("FilteredPlayer Count Is: " + filteredPlayers.Count);
             if (filteredPlayers.Count == 0)
                 return null;
-
             int idx = Random.Range (0, filteredPlayers.Count);
-
-            return filteredPlayers [idx];
-
+            return filteredPlayers[idx];
         }
 
         public static void PrepareGame ()
@@ -191,7 +184,7 @@ namespace GameplayNs
             Data.Reset ();
             Data.Lives = Instance.InitialPlayerLifes;
             Data.Kills = 0;
-            Data.OnPrepareGame();
+            Data.OnPrepareGame ();
         }
 
         public static void StartGame ()
@@ -199,28 +192,22 @@ namespace GameplayNs
             Data.OnStartGame ();
         }
 
+        #endregion  Static members
+
         public void QuitGame ()
         {
-            
             if (PhotonNetwork.connected)
             {
-                if (GameSetup.isLocalized)
-                    Srv.TotalLocalizedPlayers = Srv.TotalLocalizedPlayers - 1;
+                if (GameSetup.IsLocalized)
+                    Server.TotalLocalizedPlayers = Server.TotalLocalizedPlayers - 1;
             }
-            RemoveAllEnemies();
-            EnvironmentScannerController.Instance.StopUsingMap();
-            Data.OnToMainMenu();
-            Srv.QuitToMainMenu ();
+            // Remove enemies
+            RemoveAllEnemies ();
+            // Remove player is handeled by PlayerPhotonGenerator
+            EnvironmentScannerController.Instance.StopUsingMap ();
+            Server.QuitToMainMenu ();
+            Data.OnToMainMenu ();
         }
-
-
-        /// <summary>
-        /// Current camera used for aiming. It will be Camera.main if nothing specific
-        /// was assigned. If something specific was assigned but later destroyed, the
-        ///  Camera.main will be assigned automatically on first request.
-        /// </summary>
-
-        #endregion  Static members
 
 
         #region Weapons
@@ -245,11 +232,11 @@ namespace GameplayNs
 
         public static void RemoveAllEnemies ()
         {
-            GameObject [] enemies = GameObject.FindGameObjectsWithTag ("Enemy");
+            GameObject[] enemies = GameObject.FindGameObjectsWithTag ("Enemy");
 
             for (int i = 0; i < enemies.Length; i++)
             {
-                Destroy (enemies [i]);
+                Destroy (enemies[i]);
             }
         }
 
@@ -322,7 +309,6 @@ namespace GameplayNs
                 instance = this;
             }
             WorldRootObject = FindObjectOfType<WorldRoot> ();
-
         }
 
         protected virtual void OnDestroy ()
@@ -331,10 +317,8 @@ namespace GameplayNs
             {
                 instance = null;
             }
-
         }
 
         #endregion Singletone Implementation
-
     }
 }

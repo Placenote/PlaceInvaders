@@ -5,9 +5,8 @@ using UnityEngine;
 
 namespace EnemiesNs
 {
-   
     [System.Serializable]
-    public class EnemyLibrary 
+    public class EnemyLibrary
     {
         public string EnemyTag = "Enemy";
         public string DamageReceiverMethodName = "Damage";

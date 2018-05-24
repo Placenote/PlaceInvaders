@@ -338,6 +338,7 @@ Animator:
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorControllerStateOnDisable: 0
 --- !u!114 &114320824740508904
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -387,30 +388,42 @@ MonoBehaviour:
   NormalizedDecelerationCurve:
     serializedVersion: 2
     m_Curve:
-    - serializedVersion: 2
+    - serializedVersion: 3
       time: 0
       value: 0.15
       inSlope: 0
       outSlope: 0
       tangentMode: 0
-    - serializedVersion: 2
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
       time: 0.3835912
       value: 0.45836723
       inSlope: 1.9978249
       outSlope: 1.9978249
       tangentMode: 0
-    - serializedVersion: 2
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
       time: 0.56813043
       value: 0.78891563
       inSlope: 1.8984776
       outSlope: 1.8984776
       tangentMode: 0
-    - serializedVersion: 2
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
       time: 1
       value: 1
       inSlope: 0
       outSlope: 0
       tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 0
@@ -418,8 +431,6 @@ MonoBehaviour:
   CloseToPlayerSpeed: 0.25
   FlyAway: {fileID: 0}
   EnemyData: {fileID: 0}
-  velocity: {x: 0, y: 0, z: 0}
-  timer: 0
   MovingSpeed: 0.5
   Distance: 0
   NewRotation: {x: 0, y: 0, z: 0, w: 0}
@@ -438,10 +449,13 @@ MonoBehaviour:
   MovingSpeed: 1.1
   RotatingSpeed: 5
   TimeToWork: 6
-  IsRunning: 0
   someObject: {fileID: 0}
+  dbgRestart: 0
+  IsRunning: 0
   WorkedTime: Infinity
-  Direction: {x: 1, y: 1, z: 1}
+  DefaultDirection: {x: 1, y: 1, z: 1}
+  RandomDirection: {x: 1, y: 1, z: 1}
+  photonView: {fileID: 0}
 --- !u!114 &114670167468356764
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -470,10 +484,13 @@ MonoBehaviour:
   MovingSpeed: 2
   RotatingSpeed: 45
   TimeToWork: 5
-  IsRunning: 0
   someObject: {fileID: 0}
+  dbgRestart: 0
+  IsRunning: 0
   WorkedTime: Infinity
-  Direction: {x: 1, y: 1, z: 1}
+  DefaultDirection: {x: 1, y: 1, z: 1}
+  RandomDirection: {x: 1, y: 1, z: 1}
+  photonView: {fileID: 0}
 --- !u!114 &114703051393625908
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -497,30 +514,42 @@ MonoBehaviour:
     InterpolateSpeedCurve:
       serializedVersion: 2
       m_Curve:
-      - serializedVersion: 2
+      - serializedVersion: 3
         time: -1
         value: 0
         inSlope: 0
         outSlope: Infinity
         tangentMode: 0
-      - serializedVersion: 2
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
         time: 0
         value: 1
         inSlope: 0
         outSlope: 0
         tangentMode: 0
-      - serializedVersion: 2
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
         time: 1
         value: 1
         inSlope: 0
         outSlope: 1
         tangentMode: 0
-      - serializedVersion: 2
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
         time: 4
         value: 4
         inSlope: 1
         outSlope: 0
         tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
@@ -552,6 +581,7 @@ SkinnedMeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 2100000, guid: d8fd6b0e4cb071e4aa0c980f1a9ccdf0, type: 2}
   m_StaticBatchInfo:

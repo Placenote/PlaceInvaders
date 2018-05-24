@@ -13,36 +13,26 @@ namespace CommonNs
     /// </summary>
     public class DestroyOnAwake : MonoBehaviour
     {
-        
         public List<GameObject> ObjectsToDelete;
-        private void Awake()
+        private void Awake ()
         {
-            // first disable them, because the Destroy will be really executed during next frame
-            DisableObjects();
-            DestroyObjects();
-        }
- 
-
-        void DisableObjects()
-        {
-          
-
-            for (int i=0; i< ObjectsToDelete.Count; i++  )
-            if(ObjectsToDelete[i] != null)
-                    ObjectsToDelete[i].SetActive(false); 
-
+            // First disable them, because the Destroy will be really executed during next frame.
+            DisableObjects ();
+            DestroyObjects ();
         }
 
-
-        void DestroyObjects()
+        void DisableObjects ()
         {
-           
-
             for (int i = 0; i < ObjectsToDelete.Count; i++)
                 if (ObjectsToDelete[i] != null)
-                    Destroy(ObjectsToDelete[i]);
-
+                    ObjectsToDelete[i].SetActive (false);
         }
 
+        void DestroyObjects ()
+        {
+            for (int i = 0; i < ObjectsToDelete.Count; i++)
+                if (ObjectsToDelete[i] != null)
+                    Destroy (ObjectsToDelete[i]);
+        }
     }
 }

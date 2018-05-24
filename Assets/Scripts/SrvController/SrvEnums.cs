@@ -8,21 +8,9 @@ namespace PunServerNs
     public enum NetGameStateId
     {
         Disconnected,
-		ConnectedOutOfRoom,
+        ConnectedOutOfRoom,
         Connecting,
         ConnectedInRoom,
         Failed
     }
-
-
-/*
-    public enum ConnectionState
-    {
-        Disconnected,
-        Connecting,
-        Connected,
-        Disconnecting,
-        InitializingApplication
-    }
-    */
 }

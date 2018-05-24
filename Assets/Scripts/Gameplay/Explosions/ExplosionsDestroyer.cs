@@ -5,7 +5,6 @@ using Random = UnityEngine.Random;
 
 namespace GameplayNs
 {
-
     public class ExplosionsDestroyer : MonoBehaviour
     {
         // allows a particle system to exist for a specified duration,
@@ -24,45 +23,43 @@ namespace GameplayNs
             get
             {
                 if (_thisPhotonView == null)
-                    _thisPhotonView = GetComponent<PhotonView>();
+                    _thisPhotonView = GetComponent<PhotonView> ();
                 return _thisPhotonView;
             }
         }
 
-
-        private void Start()
+        private void Start ()
         {
-            StartCoroutine(TimerCoroutine());
+            StartCoroutine (TimerCoroutine ());
         }
 
-        public void RestartSelfDestruction()
+        public void RestartSelfDestruction ()
         {
-            StopAllCoroutines();
-            StartCoroutine(TimerCoroutine());
+            StopAllCoroutines ();
+            StartCoroutine (TimerCoroutine ());
         }
 
-        IEnumerator TimerCoroutine()
+        IEnumerator TimerCoroutine ()
         {
-            var systems = GetComponentsInChildren<ParticleSystem>();
-            var audio = GetComponentInChildren<AudioSource>();
+            var systems = GetComponentsInChildren<ParticleSystem> ();
+            var audio = GetComponentInChildren<AudioSource> ();
             if (audio != null)
-                audio.Play();
+                audio.Play ();
 
             // find out the maximum lifetime of any particles in this effect
             foreach (var system in systems)
             {
-                m_MaxLifetime = Mathf.Max(system.main.startLifetime.constant, m_MaxLifetime);
+                m_MaxLifetime = Mathf.Max (system.main.startLifetime.constant, m_MaxLifetime);
             }
 
             // wait for random duration
 
-            float stopTime = Time.time + Random.Range(minDuration, maxDuration);
+            float stopTime = Time.time + Random.Range (minDuration, maxDuration);
 
             while (Time.time < stopTime && !m_EarlyStop)
             {
                 yield return null;
             }
-            //Debug.Log("stopping " + name);
 
             // turn off emission
             foreach (var system in systems)
@@ -70,19 +67,19 @@ namespace GameplayNs
                 var emission = system.emission;
                 emission.enabled = false;
             }
-            BroadcastMessage("Extinguish", SendMessageOptions.DontRequireReceiver);
+            BroadcastMessage ("Extinguish", SendMessageOptions.DontRequireReceiver);
 
             // wait for any remaining particles to expire
-            yield return new WaitForSeconds(m_MaxLifetime);
+            yield return new WaitForSeconds (m_MaxLifetime);
 
             if (PhotonNetwork.offlineMode || !PhotonNetwork.connected)
-                Destroy(gameObject);
-            else if(photonView.isMine)
-                PhotonNetwork.Destroy(gameObject);
+                Destroy (gameObject);
+            else if (photonView.isMine)
+                PhotonNetwork.Destroy (gameObject);
 
         }
 
-        public void DoEarlyStop()
+        public void DoEarlyStop ()
         {
             // stops the particle system early
             m_EarlyStop = true;

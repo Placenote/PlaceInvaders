@@ -5,26 +5,23 @@ using UnityEngine;
 
 namespace WeaponNs
 {
-  
     public class AnimatedGun : MonoBehaviour
     {
-
         public Transform Muzzle;
-        [Range(0,1)]
+        [Range (0, 1)]
         public float DamageAmount = 0.5f;
 
         public bool IsAutomaticFire = true;
 
-        [Tooltip("Time between shots")]
+        [Tooltip ("Time between shots")]
         public float PauseBetweenShots = 0.5f;
 
-
-        [Tooltip("Time between shots")]
+        [Tooltip ("Time between shots")]
         public float ShotDuration = 0.5f;
 
         public GameObject Blast;
-        
-        [Tooltip("Third party component used by this script")]
+
+        [Tooltip ("Third party component used by this script")]
         public LightningBoltScript lightning;
         /// <summary>
         /// required by LightningBoltScript 
@@ -40,7 +37,6 @@ namespace WeaponNs
                 return _thisPhotonView;
             }
         }
-        
 
         public void DoHitShot (RaycastHit hit, float maxDistance)
         {
@@ -62,19 +58,15 @@ namespace WeaponNs
 
         void MakeDamage (RaycastHit hit, float DamageAmount)
         {
-            // Debug.Log("Sending message to " + hit.transform.gameObject.name);
-            if (
-                    (PhotonNetwork.offlineMode || !PhotonNetwork.connected)
-                    || photonView.isMine
-               )
-				// TODO If in preparing game send message that is target
-
-			if (GameController.Data.GameState == GameStateId.GameWaitingStart)
-				hit.transform.SendMessage("Hit", SendMessageOptions.DontRequireReceiver);
-			// TODO if in game send message that is enemy
-			else
-				hit.transform.SendMessage (GameController.EnemyDamageReceiverName,DamageAmount, SendMessageOptions.DontRequireReceiver);
-
+            if ((PhotonNetwork.offlineMode || !PhotonNetwork.connected) || photonView.isMine)
+            {
+                // TODO If in preparing game send message that is target
+                if (GameController.Data.GameState == GameStateId.GameWaitingStart)
+                    hit.transform.SendMessage ("Hit", SendMessageOptions.DontRequireReceiver);
+                // TODO if in game send message that is enemy
+                else
+                    hit.transform.SendMessage (GameController.EnemyDamageReceiverName, DamageAmount, SendMessageOptions.DontRequireReceiver);
+            }
         }
 
         bool IsMakingSecondaryDamageNow = false;
@@ -88,17 +80,12 @@ namespace WeaponNs
             lineRenderer.enabled = true;
             audioSource.Play ();
             yield return new WaitForSeconds (ShotDuration);
-            //HideHit();
-
             IsMakingSecondaryDamageNow = false;
             lineRenderer.enabled = false;
             lightning.enabled = false;
-
         }
 
-
-        // Use this for initialization
-        void Start()
+        void Start ()
         {
             Init ();
         }
@@ -113,7 +100,6 @@ namespace WeaponNs
             lineRenderer.enabled = false;
             lightning.enabled = false;
             audioSource = GetComponent<AudioSource> ();
-
         }
 
         AimingData AimData;
@@ -122,44 +108,38 @@ namespace WeaponNs
             AimData = newAimData;
         }
 
-        /*
-        void HideHit()
-        {
-            Blast.Stop();
-        }
-        */
-
         GameObject activeBlast;
         void ShowHit (Vector3 point)
         {
-            if (activeBlast == null) {
+            if (activeBlast == null)
+            {
                 if (PhotonNetwork.offlineMode || !PhotonNetwork.connected)
+                {
                     activeBlast = Instantiate<GameObject> (Blast, GameController.WorldRootObject.transform);
+                }
                 else
+                {
                     activeBlast = PhotonNetwork.Instantiate (Blast.name, point, Quaternion.identity, 0);
+                }
                 activeBlast.transform.parent = GameController.WorldRootObject.transform;
             }
             else
+            {
                 activeBlast.SendMessage ("RestartSelfDestruction", SendMessageOptions.DontRequireReceiver);
+            }
             activeBlast.transform.SetPositionAndRotation (point, Quaternion.identity);
-            /*
-          Blast.transform.position = point;
-          if (!Blast.gameObject.activeSelf)
-                Blast.gameObject.SetActive(true);
-            Blast.Play();
-            */
         }
 
-        // Update is called once per frame
-        void Update()
+        void Update ()
         {
-            if (IsMakingSecondaryDamageNow) {
-                // Ray ray = new Ray(Muzzle.position, )
+            if (IsMakingSecondaryDamageNow)
+            {
                 if (AimData.IsHit
                     && AimData.HitOfRay.transform != null
-                    && AimData.HitOfRay.transform.CompareTag (GameController.EnemyTag)) {
-                    ShowHit(AimData.HitOfRay.point);
-                    MakeDamage(AimData.HitOfRay, DamageAmount * Time.deltaTime);
+                    && AimData.HitOfRay.transform.CompareTag (GameController.EnemyTag))
+                {
+                    ShowHit (AimData.HitOfRay.point);
+                    MakeDamage (AimData.HitOfRay, DamageAmount * Time.deltaTime);
                 }
             }
         }

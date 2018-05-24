@@ -31,10 +31,7 @@ namespace Placenote
         private UnityARCamera mARCamera;
         private bool mARKitInit = false;
 
-        private bool isUsingMap = false;
-
-
-        #region > Singleton
+        #region Singleton
 
         public static EnvironmentScannerController Instance
         {
@@ -51,19 +48,20 @@ namespace Placenote
         }
         private static EnvironmentScannerController instance = null;
 
-        #endregion > Singleton
+        #endregion Singleton
 
 
         private void Start ()
         {
             if (GameUI == null)
-                GameUI = FindObjectOfType<GameUIController>();
+                GameUI = FindObjectOfType<GameUIController> ();
             mSession = UnityARSessionNativeInterface.GetARSessionNativeInterface ();
             UnityARSessionNativeInterface.ARFrameUpdatedEvent += ARFrameUpdated;
             StartARKit ();
             FeaturesVisualizer.EnablePointcloud ();
             LibPlacenote.Instance.RegisterListener (this);
         }
+
 
         #region Mapping Start
 
@@ -85,13 +83,9 @@ namespace Placenote
                 GetComponent<PhotonView> ().RPC ("MappingStarted", PhotonTargets.Others);
             }
 
-            //GameUI.StartSession(); // TODO DELETE
             LibPlacenote.Instance.StartSession ();
-           
             return true;
         }
-
-
 
         [PunRPC]
         private void MappingStarted ()
@@ -122,17 +116,17 @@ namespace Placenote
                     LatestMapId = mapId;
                 }
 
-            },(completed, faulted, percentage) =>
-            {
-                if (!completed && !faulted)
-                {
-                    onSavingProgress.Invoke (percentage);
-                }
-                else
-                {
-                    onSavingFinish.Invoke (!faulted);
-                }
-            });
+            }, (completed, faulted, percentage) =>
+             {
+                 if (!completed && !faulted)
+                 {
+                     onSavingProgress.Invoke (percentage);
+                 }
+                 else
+                 {
+                     onSavingFinish.Invoke (!faulted);
+                 }
+             });
         }
 
         [PunRPC]
@@ -150,11 +144,11 @@ namespace Placenote
         /// <summary>
         /// Stop Placenote session
         /// </summary>
-        public void StopUsingMap()
+        public void StopUsingMap ()
         {
-            FeaturesVisualizer.DisablePointcloud();
-            FeaturesVisualizer.clearPointcloud();
-            LibPlacenote.Instance.StopSession();
+            FeaturesVisualizer.DisablePointcloud ();
+            FeaturesVisualizer.clearPointcloud ();
+            LibPlacenote.Instance.StopSession ();
         }
 
         #endregion Mapping end
@@ -187,6 +181,7 @@ namespace Placenote
              {
                  if (completed)
                  {
+                     //LibPlacenote.Instance.StopSession ();
                      LibPlacenote.Instance.StartSession ();
                      mapLoaded.Invoke (LatestMapId);
                  }
@@ -199,7 +194,7 @@ namespace Placenote
                      onLoadingPercentage.Invoke (percentage);
                  }
              });
-            
+
             return true;
         }
 
@@ -260,14 +255,14 @@ namespace Placenote
         /// </summary>
         /// <param name="mapsLoaded"></param>
         /// <returns></returns>
-        public bool GetMapsCount(Action<LibPlacenote.MapInfo[]> mapsLoaded)
+        public bool GetMapsCount (Action<LibPlacenote.MapInfo[]> mapsLoaded)
         {
-            if (!LibPlacenote.Instance.Initialized())
+            if (!LibPlacenote.Instance.Initialized ())
             {
-                Debug.Log("SDK not yet initialized");
+                Debug.Log ("SDK not yet initialized");
                 return false;
             }
-            LibPlacenote.Instance.ListMaps(mapsLoaded);
+            LibPlacenote.Instance.ListMaps (mapsLoaded);
             return true;
         }
 
@@ -286,16 +281,16 @@ namespace Placenote
 
             int yBufSize = mARCamera.videoParams.yWidth * mARCamera.videoParams.yHeight;
             mImage.y.data = Marshal.AllocHGlobal (yBufSize);
-            mImage.y.width = (ulong) mARCamera.videoParams.yWidth;
-            mImage.y.height = (ulong) mARCamera.videoParams.yHeight;
-            mImage.y.stride = (ulong) mARCamera.videoParams.yWidth;
+            mImage.y.width = (ulong)mARCamera.videoParams.yWidth;
+            mImage.y.height = (ulong)mARCamera.videoParams.yHeight;
+            mImage.y.stride = (ulong)mARCamera.videoParams.yWidth;
 
             // This does assume the YUV_NV21 format
             int vuBufSize = mARCamera.videoParams.yWidth * mARCamera.videoParams.yWidth / 2;
             mImage.vu.data = Marshal.AllocHGlobal (vuBufSize);
-            mImage.vu.width = (ulong) mARCamera.videoParams.yWidth / 2;
-            mImage.vu.height = (ulong) mARCamera.videoParams.yHeight / 2;
-            mImage.vu.stride = (ulong) mARCamera.videoParams.yWidth;
+            mImage.vu.width = (ulong)mARCamera.videoParams.yWidth / 2;
+            mImage.vu.height = (ulong)mARCamera.videoParams.yHeight / 2;
+            mImage.vu.stride = (ulong)mARCamera.videoParams.yWidth;
 
             mSession.SetCapturePixelData (true, mImage.y.data, mImage.vu.data);
         }
@@ -341,10 +336,7 @@ namespace Placenote
             mSession.RunWithConfig (config);
         }
 
-        public void OnPose (Matrix4x4 outputPose, Matrix4x4 arkitPose)
-        {
-        }
-
+        public void OnPose (Matrix4x4 outputPose, Matrix4x4 arkitPose) { }
 
         public void OnStatusChange (LibPlacenote.MappingStatus prevStatus, LibPlacenote.MappingStatus currStatus)
         {

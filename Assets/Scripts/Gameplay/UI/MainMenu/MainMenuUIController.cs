@@ -14,7 +14,7 @@ namespace GameUiNs
     public class MainMenuUIController : MonoBehaviour
     {
         // External class references.
-        public SrvController Srv;
+        public ServerController Server;
         public GameUIController GameUI;
         public GameSetupController GameSetup;
 
@@ -48,15 +48,16 @@ namespace GameUiNs
         public GameObject ViewRoomsPanel;
         public GameObject RoomButtonsParent;    // Need parent to instaniate room buttons in correct location.
         [SerializeField] GameObject roomButtonPrefab;
-        private RoomInfo [] roomsArray;
+        private RoomInfo[] roomsArray;
+        public Text ViewRoomsText;
 
         #endregion Main UI Elements
 
 
         private void Start ()
         {
-            if (Srv == null)
-                Srv = FindObjectOfType<SrvController> ();
+            if (Server == null)
+                Server = FindObjectOfType<ServerController> ();
             if (GameUI == null)
                 GameUI = FindObjectOfType<GameUIController> ();
             if (GameSetup == null)
@@ -111,19 +112,20 @@ namespace GameUiNs
             else
                 hostingRoomName = HostingRoomNameInput.text;
             // Hide MenuUIs
-            GameObject prevUI = (GameObject) UIStack.Peek ();
+            GameObject prevUI = (GameObject)UIStack.Peek ();
             prevUI.SetActive (false);
             BackBtn.gameObject.SetActive (false);
             LoadingCircle.SetActive (true);
 
             // TODO Host the room then when room is hosted callback to GameSetupController to start mapping
-            Srv.HostRoom (hostingRoomName);
+            Server.HostRoom (hostingRoomName);
         }
 
         private void ActivateViewRoomsUI ()
         {
-            Srv.Connect ();
+            Server.Connect ();
             LoadingCircle.SetActive (true);
+            ViewRoomsText.text = "";
             DeleteViewRooms ();
             if (ViewRoomsPanel != null)
                 ActivateUI (ViewRoomsPanel);
@@ -131,10 +133,10 @@ namespace GameUiNs
 
         public void GoBack ()
         {
-            GameObject currentUI = (GameObject) UIStack.Pop ();
+            GameObject currentUI = (GameObject)UIStack.Pop ();
             currentUI.SetActive (false);
 
-            GameObject prevUI = (GameObject) UIStack.Peek ();
+            GameObject prevUI = (GameObject)UIStack.Peek ();
             prevUI.SetActive (true);
 
             LoadingCircle.SetActive (false);
@@ -156,18 +158,17 @@ namespace GameUiNs
             if (UIStack.Peek () == MainMenuPanel)
                 BackBtn.gameObject.SetActive (true);
             // Hides currentUI
-            GameObject currentUI = (GameObject) UIStack.Peek ();
+            GameObject currentUI = (GameObject)UIStack.Peek ();
             currentUI.SetActive (false);
             UIStack.Push (UIToActivate);
             UIToActivate.SetActive (!UIToActivate.activeSelf);
 
         }
 
-
         private void StartSinglePlayer ()
         {
             // Hide MenuUIs
-            GameObject prevUI = (GameObject) UIStack.Peek ();
+            GameObject prevUI = (GameObject)UIStack.Peek ();
             prevUI.SetActive (false);
             BackBtn.gameObject.SetActive (false);
 
@@ -191,33 +192,42 @@ namespace GameUiNs
             LoadingCircle.SetActive (true);
 
             int counter = 0;
-            roomsArray = Srv.GetRooms ();
+            roomsArray = Server.GetRooms ();
+            bool NoRooms = true;
             if (roomsArray.Length > 0)
+            {
                 LoadingCircle.SetActive (false);
+                NoRooms = false;
+            }
             float roomLatitude;
             float roomLongitude;
-            float [] roomGPS;
+            float[] roomGPS;
+
             foreach (RoomInfo game in roomsArray)
             {
-                roomGPS = (float []) game.CustomProperties ["GPS"];
-                roomLatitude = roomGPS [0];
-                roomLongitude = roomGPS [1];
-                if (Mathf.Abs (roomLatitude - Srv.latitude) <= Srv.GPSThreshold && Mathf.Abs (roomLongitude - Srv.longitude) <= Srv.GPSThreshold)
-               {
-                    GameObject room = (GameObject) Instantiate (roomButtonPrefab);
+                roomGPS = (float[])game.CustomProperties["GPS"];
+                roomLatitude = roomGPS[0];
+                roomLongitude = roomGPS[1];
+                if (Mathf.Abs (roomLatitude - Server.mLatitude) <= Server.GPSThreshold && Mathf.Abs (roomLongitude - Server.mLongitude) <= Server.GPSThreshold)
+                {
+                    GameObject room = (GameObject)Instantiate (roomButtonPrefab);
                     int roomIndex = counter;
                     room.GetComponent<Button> ().onClick.AddListener (
                                                     () => { JoinRoom (roomIndex); }
                                                     );
                     room.transform.GetChild (0).GetComponent<Text> ().text = game.Name;
                     room.transform.GetChild (1).GetComponent<Text> ().text = game.PlayerCount + "/" + game.MaxPlayers;
-                    room.transform.GetChild (2).GetComponent<Text> ().text = "Latitude: " + roomLatitude.ToString ();
-                    room.transform.GetChild (3).GetComponent<Text> ().text = "Longitude: " + roomLongitude.ToString ();
                     room.transform.SetParent (RoomButtonsParent.transform, false);
                     counter++;
                 }
-
             }
+            if (NoRooms)
+            {
+                ViewRoomsText.text = "There are no rooms available...\nMake sure your device is connected to the internet.";
+                LoadingCircle.SetActive (false);
+            }
+            else
+                ViewRoomsText.text = "";
         }
 
         /// <summary>
@@ -236,7 +246,7 @@ namespace GameUiNs
         /// </summary>
         public void FailToCreateRoom ()
         {
-            GameObject currentUI = (GameObject) UIStack.Peek ();
+            GameObject currentUI = (GameObject)UIStack.Peek ();
             currentUI.SetActive (false);
             BackBtn.gameObject.SetActive (false);
             FailToCreateRoomPanel.SetActive (true);
@@ -249,7 +259,7 @@ namespace GameUiNs
         public void FailToCreateRoomConfirm ()
         {
             FailToCreateRoomPanel.SetActive (false);
-            GameObject prevUI = (GameObject) UIStack.Peek ();
+            GameObject prevUI = (GameObject)UIStack.Peek ();
             prevUI.SetActive (true);
             BackBtn.gameObject.SetActive (true);
             LoadingCircle.SetActive (false);
@@ -262,15 +272,15 @@ namespace GameUiNs
 
         void Disconnect ()
         {
-            Srv.Disconnect ();
+            Server.Disconnect ();
         }
 
         void JoinRoom (int roomIndex)
         {
-            GameObject currentUI = (GameObject) UIStack.Peek ();
+            GameObject currentUI = (GameObject)UIStack.Peek ();
             currentUI.SetActive (false);
             BackBtn.gameObject.SetActive (false);
-            Srv.JoinRoom (roomsArray [roomIndex].Name);
+            Server.JoinRoom (roomsArray[roomIndex].Name);
         }
 
         #endregion Networking

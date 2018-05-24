@@ -34,6 +34,5 @@ namespace GameUiNs
         {
             base.Update ();
         }
-
     }
 }

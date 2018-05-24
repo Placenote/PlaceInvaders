@@ -8,7 +8,7 @@ using GameplayNs;
 
 namespace PunServerNs
 {
-    public class SrvController : Photon.PunBehaviour
+    public class ServerController : Photon.PunBehaviour
     {
         // External class references.
         public MainMenuUIController MainMenuUI;
@@ -18,8 +18,8 @@ namespace PunServerNs
 
         #region NetState
 
-        [Header("Setup connection here")]
-        [Tooltip("Only players with same GameNetVersion and PUN version can play with each other")]
+        [Header ("Setup connection here")]
+        [Tooltip ("Only players with same GameNetVersion and PUN version can play with each other")]
         public string GameNetVersion = "1.00";
 
         /// <summary>
@@ -30,17 +30,17 @@ namespace PunServerNs
         {
             get { return _curConnectionState; }
         }
-        void SetNetState(NetGameStateId newNetState, string message)
+        void SetNetState (NetGameStateId newNetState, string message)
         {
             _curConnectionState = newNetState;
-            NetStateChanged(newNetState, message);
+            NetStateChanged (newNetState, message);
             LastConnectionMessage = message;
-            Debug.Log("SetNetState: " + newNetState + ",'" + (message ?? "null") + "'");
+            Debug.Log ("SetNetState: " + newNetState + ",'" + (message ?? "null") + "'");
         }
 
         event Action<NetGameStateId, string> NetStateChanged = delegate { };
 
-        [Header("Public for debug only")]
+        [Header ("Public for debug only")]
         public NetGameStateId _curConnectionState;
         public string LastConnectionMessage;
 
@@ -63,7 +63,7 @@ namespace PunServerNs
 
         public RoomStatus CurrRoomStatus
         {
-            get { return (RoomStatus) PhotonNetwork.room.CustomProperties ["Status"]; }
+            get { return (RoomStatus)PhotonNetwork.room.CustomProperties["Status"]; }
             set
             {
                 ExitGames.Client.Photon.Hashtable roomStatus = new ExitGames.Client.Photon.Hashtable
@@ -72,7 +72,6 @@ namespace PunServerNs
                 };
                 PhotonNetwork.room.SetCustomProperties (roomStatus);
             }
-
         }
 
         #endregion Room Info
@@ -80,9 +79,10 @@ namespace PunServerNs
 
         #region Player values
 
+        // TODO finish implementation (currently unused)
         public int TotalLocalizedPlayers
         {
-            get { return (int) PhotonNetwork.room.CustomProperties ["LocalizedPlayers"]; }
+            get { return (int)PhotonNetwork.room.CustomProperties["LocalizedPlayers"]; }
             set
             {
                 ExitGames.Client.Photon.Hashtable roomStatus = new ExitGames.Client.Photon.Hashtable
@@ -92,7 +92,7 @@ namespace PunServerNs
                 PhotonNetwork.room.SetCustomProperties (roomStatus);
             }
         }
-  
+
         public int MaxPlayersInRoom
         {
             get { return PhotonNetwork.room.MaxPlayers; }
@@ -113,12 +113,6 @@ namespace PunServerNs
             get; private set;
         }
 
-        public bool IsQuitingToMainMenu
-        {
-            get; private set;
-        }
-
-
         #region Monobehavior  standard methods
 
         void Awake ()
@@ -128,7 +122,7 @@ namespace PunServerNs
 
             // #Critical
             // this makes sure we can use PhotonNetwork.LoadLevel() on the master client and all clients in the same room sync their level automatically
-            PhotonNetwork.automaticallySyncScene = false;  
+            PhotonNetwork.automaticallySyncScene = false;
         }
 
         void Start ()
@@ -140,7 +134,7 @@ namespace PunServerNs
                 MaxPlayers = 10
             };
 
-            roomOptions.CustomRoomPropertiesForLobby = new string [1] { "GPS" };
+            roomOptions.CustomRoomPropertiesForLobby = new string[1] { "GPS" };
 
             if (MainMenuUI == null)
                 MainMenuUI = FindObjectOfType<MainMenuUIController> ();
@@ -152,7 +146,6 @@ namespace PunServerNs
             PhotonNetwork.Disconnect ();
 
             IsHost = false;
-            IsQuitingToMainMenu = false;
             GPSThreshold = 0.01f;
             StartCoroutine (StartLocationService ());
         }
@@ -163,19 +156,20 @@ namespace PunServerNs
         #region GPS
 
         // GPS
-        public float latitude = 0;
-        public float longitude = 0;
+        public float mLatitude = 0;
+        public float mLongitude = 0;
         public float GPSThreshold { get; private set; }
 
         // TODO Move this
         private IEnumerator StartLocationService ()
         {
-            latitude = 43.4513604f;
-            longitude = -80.49861820000001f; // For debug
+#if UNITY_EDITOR
+            mLatitude = 43.4513604f;
+            mLongitude = -80.49861820000001f; // For debug
+#endif
             if (!Input.location.isEnabledByUser)
             {
-                Debug.Log ("User has not enabled G" +
-                    "PS");
+                Debug.Log ("User has not enabled GPS");
                 yield break;
             }
 
@@ -199,8 +193,8 @@ namespace PunServerNs
                 yield break;
             }
 
-            latitude = Input.location.lastData.latitude;
-            longitude = Input.location.lastData.longitude;
+            mLatitude = Input.location.lastData.latitude;
+            mLongitude = Input.location.lastData.longitude;
         }
 
         #endregion GPS
@@ -256,12 +250,31 @@ namespace PunServerNs
 
         public void QuitToMainMenu ()
         {
-            IsQuitingToMainMenu = true;
-            Disconnect ();
+            if (IsHost)
+            {
+                // Let other players know if host left before starting the game
+                if (CurrRoomStatus != RoomStatus.Playing)
+                {
+                    GetComponent<PhotonView> ().RPC ("HostLeftRPC", PhotonTargets.Others);
+                }
+            }
+            StartCoroutine (DisconnectAfterRPC ()); // TODO update for more elegant solution
             MainMenuUI.Initialize ();
         }
 
-        public RoomInfo [] GetRooms ()
+        IEnumerator DisconnectAfterRPC ()
+        {
+            yield return new WaitForSeconds (0.25f);
+            Disconnect ();
+        }
+
+        [PunRPC]
+        private void HostLeftRPC ()
+        {
+            GameUI.HelperText.text = "The host has left before starting the game. Please quit to the Main Menu.";
+        }
+
+        public RoomInfo[] GetRooms ()
         {
             return PhotonNetwork.GetRoomList ();
         }
@@ -311,7 +324,7 @@ namespace PunServerNs
             if (IsHost)
             {
                 // Add GPS as custom property
-                float [] roomGPS = { latitude, longitude };
+                float[] roomGPS = { mLatitude, mLongitude };
                 roomOptions.CustomRoomProperties = new ExitGames.Client.Photon.Hashtable (1) { { "GPS", roomGPS } }; // add this line
                 PhotonNetwork.CreateRoom (RoomName, roomOptions, lobby);
             }
@@ -341,17 +354,15 @@ namespace PunServerNs
             {
                 // Change room status to mapping
                 CurrRoomStatus = RoomStatus.Mapping;
-                Debug.Log (((float []) PhotonNetwork.room.CustomProperties ["GPS"]));
                 MainMenuUI.LoadingCircle.SetActive (false); // TODO turn this into a callback in MainMenuUIController
                 GameSetup.EnvironmentMappingStart ();
                 TotalLocalizedPlayers = 0;
-
             }
             else
             {
-                if (PhotonNetwork.room.CustomProperties ["MapId"] != null)
+                if (PhotonNetwork.room.CustomProperties["MapId"] != null)
                 {
-                    EnvironmentScannerController.Instance.SetLatestMapId (PhotonNetwork.room.CustomProperties ["MapId"].ToString ());
+                    EnvironmentScannerController.Instance.SetLatestMapId (PhotonNetwork.room.CustomProperties["MapId"].ToString ());
                 }
                 if (CurrRoomStatus == RoomStatus.Mapping)
                 {
@@ -371,8 +382,6 @@ namespace PunServerNs
                 }
                 GameController.PrepareGame ();
             }
-
-
         }
 
         public override void OnPhotonPlayerConnected (PhotonPlayer newPlayer)
@@ -390,7 +399,6 @@ namespace PunServerNs
             Debug.Log ("Another player has Left!");
             // Update player amounts
             GameController.Data.UpdatePlayerAmounts ();
-
         }
 
         public override void OnDisconnectedFromPhoton ()
@@ -399,7 +407,6 @@ namespace PunServerNs
             SetNetState (NetGameStateId.Disconnected, "Totally disconnected");
             // User is no longer host when totally disconnected from photon.
             IsHost = false;
-            IsQuitingToMainMenu = false;
         }
 
         public override void OnLeftRoom ()
@@ -410,25 +417,24 @@ namespace PunServerNs
 
         public override void OnReceivedRoomListUpdate ()
         {
+            Debug.Log ("-------- OnReceivedRoomListUpdate --------------");
             foreach (RoomInfo room in PhotonNetwork.GetRoomList ())
             {
-                Debug.Log ("0000000000  " + room.Name + " 0000000");
+                Debug.Log ("Room Name: " + room.Name);
             }
             // Generate buttons for viewRoomsPanel
             if (!IsHost)
                 MainMenuUI.GenerateViewRooms ();
         }
 
-        public override void OnPhotonCreateRoomFailed (object [] codeAndMsg)
+        public override void OnPhotonCreateRoomFailed (object[] codeAndMsg)
         {
-            Debug.Log ("-------- OnPhotonCreateRoomFailed:" + codeAndMsg [0].ToString ());
-            SetNetState (NetGameStateId.Failed, "Failed connection:" + codeAndMsg [0].ToString ());
+            Debug.Log ("-------- OnPhotonCreateRoomFailed:" + codeAndMsg[0].ToString ());
+            SetNetState (NetGameStateId.Failed, "Failed connection:" + codeAndMsg[0].ToString ());
             Disconnect ();
             MainMenuUI.FailToCreateRoom ();
         }
 
         #endregion Photon callbacks
-
-
     }
 }

@@ -7,32 +7,25 @@ using UnityEngine.EventSystems;
 
 namespace GameUiNs
 {
-
     public class ShotButton : KeyboardClickableBase
     {
-
-
-        void Shoting(bool IsShoting)
+        void Shoting (bool IsShoting)
         {
-
-                GameController.Instance.Weapon.CallRPCShotTrigger(IsShoting);
+            GameController.Instance.Weapon.CallRPCShotTrigger (IsShoting);
         }
 
-        override public void OnPointerDown(PointerEventData eventData)
+        override public void OnPointerDown (PointerEventData eventData)
         {
-;
-            Shoting(true);
-
-        }
-        public void StopFiring()
-        {
-            Shoting(false);
+            Shoting (true);
         }
 
-        override public void OnPointerUp(PointerEventData eventData) {StopFiring(); }
+        public void StopFiring ()
+        {
+            Shoting (false);
+        }
 
-        override public void OnPointerClick(PointerEventData eventData)  {}
-       
+        override public void OnPointerUp (PointerEventData eventData) { StopFiring (); }
 
+        override public void OnPointerClick (PointerEventData eventData) { }
     }
 }

@@ -8,10 +8,8 @@ namespace GameplayNs
     [System.Serializable]
     public class OnePlayerData
     {
-
         public int Lives;
         public int Kills;
-
         public bool IsPlayerDead;
 
         public void Reset ()
@@ -19,7 +17,6 @@ namespace GameplayNs
             Lives = 0;
             Kills = 0;
         }
-
     }
 
     public enum GameStateId
@@ -37,7 +34,6 @@ namespace GameplayNs
     public class GameData
     {
         public GameStateId GameState = GameStateId.GameWaitingStart;
-
 
         #region Events section
         public enum SomethingId
@@ -67,63 +63,57 @@ namespace GameplayNs
                                                                    ((id) => Debug.Log ("Sent " + id));
         public event Action NotifySomeDataChanged = delegate { };
 
-        public void Reset()
+        public void Reset ()
         {
-            PlayerData.Reset();
-            NotifySomeDataChanged();
+            PlayerData.Reset ();
+            NotifySomeDataChanged ();
         }
 
-        public void OnPrepareGame()
+        public void OnPrepareGame ()
         {
             GameState = GameStateId.GameWaitingStart;
-            NotifySomethingHappened(SomethingId.GamePreparing);
+            NotifySomethingHappened (SomethingId.GamePreparing);
             if (PhotonNetwork.connected)
             {
                 LocalizedPlayers = 0;
-                PlayersInRoom = GameController.Instance.Srv.TotalPlayersInRoom;
-                MaxPlayersAllowed = GameController.Instance.Srv.MaxPlayersInRoom;
+                PlayersInRoom = GameController.Instance.Server.TotalPlayersInRoom;
+                MaxPlayersAllowed = GameController.Instance.Server.MaxPlayersInRoom;
             }
-
         }
 
-        public void OnStartGame()
+        public void OnStartGame ()
         {
             GameState = GameStateId.GamePlaying;
-            NotifySomethingHappened(SomethingId.GameStart);
+            NotifySomethingHappened (SomethingId.GameStart);
         }
 
-        public void OnToMainMenu()
+        public void OnToMainMenu ()
         {
             GameState = GameStateId.GameWaitingStart;
-            NotifySomethingHappened(SomethingId.ToMainMenu);
+            NotifySomethingHappened (SomethingId.ToMainMenu);
         }
 
         /// <summary>
         /// Call DoNotifySomethingHappened action outside of this class
         /// </summary>
         /// <param name="id"></param>
-        public void NotifyWorldRootPlaced()
+        public void NotifyWorldRootPlaced ()
         {
-            NotifySomethingHappened(SomethingId.WorldRootPlaced);
+            NotifySomethingHappened (SomethingId.WorldRootPlaced);
         }
 
         #endregion Events section
 
 
-
-
-
-        #region data section, add new here
-
+        #region data section
 
         [Tooltip ("public just for debug purposes")]
         public OnePlayerData PlayerData = new OnePlayerData ();
 
+        #endregion data section
 
-        #endregion data section, add new here
 
-
-        #region properties section, add new here
+        #region properties section
 
         public int Kills
         {
@@ -145,7 +135,7 @@ namespace GameplayNs
         {
             if (PlayerData.Lives == 0 || !PlayerData.IsPlayerDead)
                 return false;
-            
+
             PlayerData.Lives--;
             PlayerData.IsPlayerDead = false;
             NotifySomethingHappened (SomethingId.PlayerResurrected);
@@ -171,19 +161,19 @@ namespace GameplayNs
         {
             get { return PlayerData.IsPlayerDead; }
         }
+
         public int LocalizedPlayers;
         public int PlayersInRoom;
         public int MaxPlayersAllowed;
 
         public void UpdatePlayerAmounts ()
         {
-            LocalizedPlayers = GameController.Instance.Srv.TotalLocalizedPlayers;
-            PlayersInRoom = GameController.Instance.Srv.TotalPlayersInRoom;
-            MaxPlayersAllowed = GameController.Instance.Srv.MaxPlayersInRoom;
+            LocalizedPlayers = GameController.Instance.Server.TotalLocalizedPlayers;
+            PlayersInRoom = GameController.Instance.Server.TotalPlayersInRoom;
+            MaxPlayersAllowed = GameController.Instance.Server.MaxPlayersInRoom;
             NotifySomeDataChanged ();
         }
 
-        #endregion properties section, add new here
-
+        #endregion properties section
     }
 }
