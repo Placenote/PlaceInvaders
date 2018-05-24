@@ -11,6 +11,7 @@ Xcode: 9.3
 Devices tested OS: 11.3
 
 <br/>
+
 ### Steps to Deploy on 2 devices:
 
 ##### Before compiling to device:
@@ -23,6 +24,9 @@ Devices tested OS: 11.3
 
 3. Build the Unity project by Switching Platform to iOS in the Build Settings and click build to generate the XCode project. To build and run the XCode, follow the instructions on this page:
 https://placenote.com/install/unity/build-xcode/
+
+<br/>
+
 **You will also need to add a "Privacy - Location When In Use Usage Description" key into your *Info.plist*. (This is so that you will only see photon rooms that are close by)**
 
 ##### Playing the Game:
@@ -54,6 +58,7 @@ https://placenote.com/install/unity/build-xcode/
   *- Player 2 can join and leave at anytime. They just need to localize before they can play.*
 
 <br/>
+
 ### Used technologies:
 
 **ArKit**: https://assetstore.unity.com/packages/essentials/tutorial-projects/unity-arkit-plugin-92515
@@ -65,7 +70,9 @@ https://placenote.com/install/unity/build-xcode/
 **Space Invader Models and Animations**: https://www.turbosquid.com/3d-models/space-invader-set-3d-model/768637
 
 <br/>
+
 ### Important Scripts:
+
 ##### *The important folders are Scripts/Gameplay, Scripts/PlacenoteSample, and Scripts/ServerController*
 
 **GameController.cs**: controls game logic including starting game, creating enemies, and managing players (creating new, registering,removing).
