@@ -383,8 +383,8 @@ PlayerSettings:
   logObjCUncaughtExceptions: 1
   enableCrashReportAPI: 0
   cameraUsageDescription: Place Invaders needs camera access to display AR content.
-  locationUsageDescription: Place Invaders needs location access to display multiplayer
-    rooms.
+  locationUsageDescription: Place Invaders needs location access to display multi-player
+    rooms close to you.
   microphoneUsageDescription: 
   switchNetLibKey: 
   switchSocketMemoryPoolSize: 6144
