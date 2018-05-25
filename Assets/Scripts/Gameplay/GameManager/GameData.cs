@@ -85,6 +85,7 @@ namespace GameplayNs
         {
             GameState = GameStateId.GamePlaying;
             NotifySomethingHappened (SomethingId.GameStart);
+            UpdatePlayerAmounts ();
         }
 
         public void OnToMainMenu ()
@@ -168,10 +169,18 @@ namespace GameplayNs
 
         public void UpdatePlayerAmounts ()
         {
-            LocalizedPlayers = GameController.Instance.Server.TotalLocalizedPlayers;
-            PlayersInRoom = GameController.Instance.Server.TotalPlayersInRoom;
-            MaxPlayersAllowed = GameController.Instance.Server.MaxPlayersInRoom;
-            NotifySomeDataChanged ();
+            if (PhotonNetwork.connected)
+            {
+                LocalizedPlayers = GameController.Instance.Server.TotalLocalizedPlayers;
+                PlayersInRoom = GameController.Instance.Server.TotalPlayersInRoom;
+                MaxPlayersAllowed = GameController.Instance.Server.MaxPlayersInRoom;
+                NotifySomeDataChanged ();
+            }
+            else
+            {
+                PlayersInRoom = 1;
+            }
+
         }
 
         #endregion properties section

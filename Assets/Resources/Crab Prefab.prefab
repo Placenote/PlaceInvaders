@@ -690,7 +690,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   FullHealth: 1
   CurrentStage: 0
-  MeleeDamageDistance: 1.5
+  MeleeDamageDistance: 0.5
   AttackPower: 0.1
   AttackTimeLimit: 600
   RotationSpeed: 80
@@ -700,8 +700,8 @@ MonoBehaviour:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
-      time: 0
-      value: 0.15
+      time: -0.020832062
+      value: 0.39612427
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -709,23 +709,14 @@ MonoBehaviour:
       inWeight: 0.33333334
       outWeight: 0.33333334
     - serializedVersion: 3
-      time: 0.3835912
-      value: 0.45836723
-      inSlope: 1.9978249
-      outSlope: 1.9978249
+      time: 0.45026094
+      value: 0.72053915
+      inSlope: 0.7328094
+      outSlope: 0.7328094
       tangentMode: 0
       weightedMode: 0
       inWeight: 0.33333334
-      outWeight: 0.33333334
-    - serializedVersion: 3
-      time: 0.56813043
-      value: 0.78891563
-      inSlope: 1.8984776
-      outSlope: 1.8984776
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
+      outWeight: 0.24965447
     - serializedVersion: 3
       time: 1
       value: 1
@@ -738,8 +729,8 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 0
-  FarFromPlayerSpeed: 1
-  CloseToPlayerSpeed: 0.25
+  FarFromPlayerSpeed: 0.75
+  CloseToPlayerSpeed: 0.5
   FlyAway: {fileID: 0}
   EnemyData: {fileID: 0}
   MovingSpeed: 0.5

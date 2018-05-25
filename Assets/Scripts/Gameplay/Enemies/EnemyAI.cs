@@ -1,9 +1,7 @@
 ﻿using GameplayNs;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using PlayerNs;
-using System;
 
 namespace EnemiesNs
 {
@@ -22,7 +20,7 @@ namespace EnemiesNs
         public StageId CurrentStage = StageId.JustCreated;
 
         [Header ("Setup Attack")]
-        public float MeleeDamageDistance = 1.5f;
+        public float MeleeDamageDistance = 0.5f;
 
         [Range (0, 1)]
         public float AttackPower = 0.1f;
