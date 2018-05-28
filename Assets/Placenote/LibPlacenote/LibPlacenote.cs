@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Runtime.InteropServices;
@@ -75,7 +76,7 @@ public class LibPlacenote : MonoBehaviour
 
 	/// <summary>
 	/// Struct that captures the intrinsic calibration parameters of a pinhole model camera.
-    /// </summary>
+	/// </summary>
 	[StructLayout (LayoutKind.Sequential)]
 	public struct PNCameraInstrinsicsUnity
 	{
@@ -116,7 +117,7 @@ public class LibPlacenote : MonoBehaviour
 		[MarshalAs (UnmanagedType.LPStr)]
 		public String msg;
 	}
-		
+
 	/// <summary>
 	/// Struct that decribes a 3-D float vector
 	/// </summary>
@@ -127,7 +128,7 @@ public class LibPlacenote : MonoBehaviour
 		public float y;
 		public float z;
 	}
-		
+
 	/// <summary>
 	/// Struct that decribes a rotation quaternion
 	/// </summary>
@@ -228,18 +229,48 @@ public class LibPlacenote : MonoBehaviour
 	[System.Serializable]
 	private class MapList
 	{
-		public MapInfo[] places;
+		public MapInfo[] places = null;
 	}
 
+	/// <summary>
+	/// For Unity Simulator
+	/// TODO Add comment
+	/// Unity camera poses.
+	/// </summary>
+	[System.Serializable]
+	private struct SimCameraPoses
+	{
+		public List<PNTransformUnity> cameraPoses;
+	}
 
 	private static LibPlacenote sInstance;
 	private List<PlacenoteListener> listeners = new List<PlacenoteListener> ();
 	private string mMapPath;
-	private Matrix4x4 mRotUnityCam2RGB;
 	private MappingStatus mPrevStatus = MappingStatus.WAITING;
 	private bool mInitialized = false;
 	private List<Action<MapInfo[]>> mapListCbs = new List<Action<MapInfo[]>> ();
 	private Matrix4x4? mCurrentTransform = null;
+
+	/// For the Unity Simulator
+
+	/// The Current Map status and current localization status that is used
+	private MappingStatus mCurrStatus = MappingStatus.WAITING;
+	private bool mLocalization = false;
+
+	/// The thresholds that define when a new camera pose should be saved
+	private float SIM_MAP_DISTANCE_THRESHOLD = 0.4f;
+	private float SIM_MAP_ANGLE_THRESHOLD = 20f;
+	/// The thresholds that define a when the camera should localize
+	private float SIM_LOCAL_DISTANCE_THRESHOLD = 0.5f;
+	private float SIM_LOCAL_ANGLE_THRESHOLD = 30f;
+
+	private MapInfo simMap = new MapInfo();
+	private SimCameraPoses simCameraPoses = new SimCameraPoses();
+
+	/// File info for writing JSON maps
+	private string simMapFileName = "/jsonMaps.json";
+
+	/// End for Unity Simulator
 
 	// Fill in API Key here
 	[SerializeField] String apiKey;
@@ -249,7 +280,7 @@ public class LibPlacenote : MonoBehaviour
 	/// </summary>
 	/// <value>The singleton instance</value>
 	public static LibPlacenote Instance {
-		get {			
+		get {
 			return sInstance;
 		}
 	}
@@ -270,6 +301,17 @@ public class LibPlacenote : MonoBehaviour
 	{
 		listeners.Add (listener);
 	}
+
+
+	/// <summary>
+	/// Remove a listener to events published by LibPlacenote
+	/// </summary>
+	/// <param name="listener">A listener to be removed to the subscriber list.</param>
+	public void RemoveListener (PlacenoteListener listener)
+	{
+		listeners.Remove (listener);
+	}
+
 
 
 	/// <summary>
@@ -299,9 +341,9 @@ public class LibPlacenote : MonoBehaviour
 	/// </summary>
 	private void Init ()
 	{
-#if UNITY_EDITOR
+		#if UNITY_EDITOR
 		mInitialized = true;
-#endif
+		#endif
 
 		PNInitParamsUnity initParams = new PNInitParamsUnity ();
 
@@ -310,12 +352,9 @@ public class LibPlacenote : MonoBehaviour
 		initParams.appBasePath = Application.streamingAssetsPath + "/Placenote";
 		initParams.mapPath = Application.persistentDataPath;
 
-		mRotUnityCam2RGB = Matrix4x4.TRS (new Vector3 (0, 0, 0), 
-			Quaternion.AngleAxis (-90, new Vector3 (0, 0, 1)), new Vector3 (1, 1, 1));
-
-#if !UNITY_EDITOR
+    #if !UNITY_EDITOR
 		PNInitialize (ref initParams, OnInitialized, IntPtr.Zero);
-#endif
+		#endif
 	}
 
 	/// <summary>
@@ -353,7 +392,7 @@ public class LibPlacenote : MonoBehaviour
 			break;
 		// landscape
 		case 3:
-			// do nothing
+		// do nothing
 			orientRemovalMat = Matrix4x4.identity;
 			break;
 		case 4:
@@ -404,8 +443,19 @@ public class LibPlacenote : MonoBehaviour
 		PNTransformUnity result = new PNTransformUnity ();
 		#if !UNITY_EDITOR
 		PNGetPose (ref result);
-		#endif
 
+		#else
+
+		/// Manually setting result to current Unity camera pose
+		result.position.x = Camera.main.gameObject.transform.position.x;
+		result.position.y = Camera.main.gameObject.transform.position.y;
+		result.position.z = Camera.main.gameObject.transform.position.z;
+		result.rotation.x = Camera.main.gameObject.transform.rotation.x;
+		result.rotation.y = Camera.main.gameObject.transform.rotation.y;
+		result.rotation.z = Camera.main.gameObject.transform.rotation.z;
+		result.rotation.w = Camera.main.gameObject.transform.rotation.w;
+
+		#endif
 		return result;
 	}
 
@@ -420,7 +470,7 @@ public class LibPlacenote : MonoBehaviour
 		MappingStatus status = (MappingStatus)PNGetStatus ();
 		return status;
 		#else
-		return MappingStatus.WAITING;
+		return mCurrStatus;
 		#endif
 	}
 
@@ -436,7 +486,8 @@ public class LibPlacenote : MonoBehaviour
 	{
 		Matrix4x4 outputPoseMat = PNUtility.MatrixOps.PNPose2Matrix4x4 (outputPose);
 		Matrix4x4 arkitPoseMat = PNUtility.MatrixOps.PNPose2Matrix4x4 (arkitPose);
-		MappingStatus status = (MappingStatus)PNGetStatus ();
+
+		MappingStatus status = Instance.GetStatus();
 
 		var listeners = Instance.listeners;
 		if (status == MappingStatus.RUNNING) {
@@ -446,7 +497,6 @@ public class LibPlacenote : MonoBehaviour
 				}
 			});
 			Instance.mCurrentTransform = outputPoseMat * arkitPoseMat.inverse;
-
 		}
 
 		if (status != Instance.mPrevStatus) {
@@ -461,8 +511,8 @@ public class LibPlacenote : MonoBehaviour
 
 
 	/// <summary>
-	/// Return a transform in the current ARKit frame transformed into the inertial frame w.r.t the current Placenote Map. Will return null 
-	/// mapping is not initialized 
+	/// Return a transform in the current ARKit frame transformed into the inertial frame w.r.t the current Placenote Map. Will return null
+	/// mapping is not initialized
 	/// </summary>
 	/// <param name="status">Transform in the ARKit frame of reference (e.g: acquired from a screen touch)</param>
 	public Matrix4x4? ProcessPose(Matrix4x4 poseInARKit) {
@@ -471,7 +521,6 @@ public class LibPlacenote : MonoBehaviour
 		}
 		return (mCurrentTransform * poseInARKit);
 	}
-
 
 
 	/// <summary>
@@ -483,9 +532,108 @@ public class LibPlacenote : MonoBehaviour
 	{
 		#if !UNITY_EDITOR
 		PNStartSession (OnPose, IntPtr.Zero);
+		#else
+
+		if(mLocalization) {
+			/// Set MappingStatus to LOST if status is localization
+			mCurrStatus = MappingStatus.LOST;
+			/// Stops the relocalization (checkLocalization) or the mapping (saving cameraPoses) invoke
+			sInstance.CancelInvoke();
+			/// Start checking for localization
+			sInstance.InvokeRepeating ("checkLocalization", 0f, 0.5f);
+		} else {
+			/// Set MappingStatus to RUNNING if status is mapping (ie. not localization)
+			mCurrStatus = MappingStatus.RUNNING;
+			/// Stops the relocalization (checkLocalization) or the mapping (saving cameraPoses) invoke
+			sInstance.CancelInvoke();
+			/// Start saving camera poses to create a map
+			simCameraPoses.cameraPoses = new List<PNTransformUnity> ();
+			sInstance.InvokeRepeating ("SaveCameraPose", 0f, 0.5f);
+		}
+
+		/// A coroutine that simulates the InvokeRepeating of OnPose
+		StartCoroutine(OnPoseInvokeRepeat());
+
 		#endif
 	}
 
+	/// <summary>
+	/// For Unity Simulator
+	/// A coroutine that calls OnPose with in 0.5s intervals
+	/// Designed to mimick the behaviour of Invoke Repeating
+	/// </summary>
+	IEnumerator OnPoseInvokeRepeat()
+	{
+		while (true) {
+			PNTransformUnity currCameraPose =  GetPose();
+			OnPose(ref currCameraPose,ref currCameraPose,IntPtr.Zero);
+			yield return new WaitForSeconds (0.5f);
+		}
+	}
+
+	/// <summary>
+	/// For Unity Simulator
+	/// Saves the current camera pose into the struct simCameraPoses
+	/// if the current pose is different (above threshold) from the previous pose
+	/// </summary>
+	/// <param name="currCameraPose">Curr camera pose.</param>
+	public void SaveCameraPose()
+	{
+		PNTransformUnity currCameraPose = GetPose();
+		/// Converts PNTransformUnity back into Vector3 and Quaternion
+		Vector3 currPosition = new Vector3 (currCameraPose.position.x, currCameraPose.position.y, currCameraPose.position.z);
+		Quaternion currRotation = new Quaternion (currCameraPose.rotation.x, currCameraPose.rotation.y,
+			currCameraPose.rotation.z, currCameraPose.rotation.w);
+
+		/// If the cameraPoses list is empty
+		if (simCameraPoses.cameraPoses.Count == 0) {
+			simCameraPoses.cameraPoses.Add (currCameraPose);
+		} else {
+			/// Get previous cameraPose from list
+			PNTransformUnity prevCameraPose = simCameraPoses.cameraPoses[simCameraPoses.cameraPoses.Count - 1];
+			Vector3 prevPosition = new Vector3 (prevCameraPose.position.x, prevCameraPose.position.y, prevCameraPose.position.z);
+			Quaternion prevRotation = new Quaternion (prevCameraPose.rotation.x, prevCameraPose.rotation.y,
+				prevCameraPose.rotation.z, prevCameraPose.rotation.w);
+
+			float positionDiffNorm = Vector3.Distance (currPosition, prevPosition);
+			float angleDiffNorm = Quaternion.Angle(prevRotation, currRotation);
+
+			// Save current cameraPose as new pose if above distance and angle threshold
+			if (positionDiffNorm > SIM_MAP_DISTANCE_THRESHOLD || angleDiffNorm > SIM_MAP_ANGLE_THRESHOLD) {
+				simCameraPoses.cameraPoses.Add (currCameraPose);
+			}
+		}
+	}
+
+	/// <summary>
+	/// For Unity Simulator
+	/// Checks if the current camera pose is within the range for localization.
+	/// </summary>
+	public void checkLocalization()
+	{
+		PNTransformUnity currCameraPose = GetPose();
+		Vector3 currPosition = new Vector3 (currCameraPose.position.x, currCameraPose.position.y, currCameraPose.position.z);
+		Quaternion currRotation = new Quaternion (currCameraPose.rotation.x, currCameraPose.rotation.y,
+			currCameraPose.rotation.z, currCameraPose.rotation.w);
+
+		/// Iterate through each saved cameraPose in the map to find the one that matches
+		/// the current cameraPose.
+		for (int i = 0; i < simCameraPoses.cameraPoses.Count; i++) {
+			PNTransformUnity localizeCameraPose = simCameraPoses.cameraPoses[i];
+			Vector3 localizePosition = new Vector3 (localizeCameraPose.position.x, localizeCameraPose.position.y, localizeCameraPose.position.z);
+			Quaternion localizeRotation = new Quaternion (localizeCameraPose.rotation.x, localizeCameraPose.rotation.y,
+				localizeCameraPose.rotation.z, localizeCameraPose.rotation.w);
+			float positionDiffNorm = Vector3.Distance (currPosition, localizePosition);
+			float angleDiffNorm = Quaternion.Angle(localizeRotation, currRotation);
+
+			if (positionDiffNorm < SIM_LOCAL_DISTANCE_THRESHOLD && angleDiffNorm < SIM_LOCAL_ANGLE_THRESHOLD) {
+				mCurrStatus = MappingStatus.RUNNING;
+				break;
+			} else {
+				mCurrStatus = MappingStatus.LOST;
+			}
+		}
+	}
 
 	/// <summary>
 	/// Stops the running mapping/localization session.
@@ -495,6 +643,15 @@ public class LibPlacenote : MonoBehaviour
 		mCurrentTransform = null; //transform is again, meaningless
 		#if !UNITY_EDITOR
 		PNStopSession ();
+		#else
+		/// Stops the current OnPose coroutine
+		StopCoroutine(OnPoseInvokeRepeat());
+
+		/// Stops the relocalization or the mapping (saving cameraPoses) invoke
+		sInstance.CancelInvoke ();
+
+		mCurrStatus = MappingStatus.WAITING;
+		mLocalization = false;
 		#endif
 	}
 
@@ -534,9 +691,8 @@ public class LibPlacenote : MonoBehaviour
 	/// <param name="uploadProgressCb">Callback to publish the progress of the dataset upload.</param>
 	public void StartRecordDataset (Action<bool, bool, float> uploadProgressCb)
 	{
-		IntPtr cSharpContext = GCHandle.ToIntPtr (GCHandle.Alloc (uploadProgressCb));
-
 		#if !UNITY_EDITOR
+		IntPtr cSharpContext = GCHandle.ToIntPtr (GCHandle.Alloc (uploadProgressCb));
 		PNStartRecordDataset (OnDatasetUpload, cSharpContext);
 		#else
 		uploadProgressCb (true, false, 1.0f);
@@ -599,7 +755,6 @@ public class LibPlacenote : MonoBehaviour
 		});
 	}
 
-
 	/// <summary>
 	/// Fetch a list of maps associated with a API Key
 	/// </summary>
@@ -607,21 +762,27 @@ public class LibPlacenote : MonoBehaviour
 	public void ListMaps (Action<MapInfo[]> listCb)
 	{
 		mapListCbs.Add (listCb);
-		IntPtr cSharpContext = GCHandle.ToIntPtr (GCHandle.Alloc (listCb));
 
 		#if !UNITY_EDITOR
+		IntPtr cSharpContext = GCHandle.ToIntPtr (GCHandle.Alloc (listCb));
 		PNListMaps(OnMapList, cSharpContext);
 		#else
-		MapInfo[] mapList = new MapInfo[1];
-		mapList [0] = new MapInfo ();
-		mapList [0].placeId = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
-		listCb (mapList);
+
+		/// If the file does not exist
+		if(!File.Exists(Application.dataPath + simMapFileName)){
+			Debug.Log("There are no maps. Please create a new map.");
+		}else{
+			/// Reads maps from file as JSON
+			string mapData = File.ReadAllText(Application.dataPath + simMapFileName);
+			MapInfo[] mapList = JsonConvert.DeserializeObject<MapInfo[]> (mapData);
+			listCb (mapList);
+		}
 		#endif
 	}
 
 
 	/// <summary>
-	/// A class to casted as context to be passed to <see cref="OnMapSaved"/> 
+	/// A class to casted as context to be passed to <see cref="OnMapSaved"/>
 	/// and <see cref="OnMapUploaded"/> functions to capture external states
 	/// </summary>
 	private class SaveLoadContext
@@ -688,7 +849,7 @@ public class LibPlacenote : MonoBehaviour
 				Debug.Log ("Added a record to map db with id " + mapId);
 				PNSaveMap (mapId, OnMapUploaded, contextPtr);
 				savedCb (mapId);
-			} else {        
+			} else {
 				Debug.Log (String.Format ("Failed to add the map! Error msg: %s", resultClone.msg));
 				savedCb (null);
 				handle.Free ();
@@ -707,12 +868,35 @@ public class LibPlacenote : MonoBehaviour
 		SaveLoadContext context = new SaveLoadContext ();
 		context.savedCb = savedCb;
 		context.progressCb = progressCb;
-		IntPtr cSharpContext = GCHandle.ToIntPtr (GCHandle.Alloc (context));
 
 		#if !UNITY_EDITOR
+		IntPtr cSharpContext = GCHandle.ToIntPtr (GCHandle.Alloc (context));
 		PNAddMap (OnMapSaved, cSharpContext);
 		#else
-		savedCb ("123456789");
+
+		/// Setting map Id
+		simMap.placeId =  Guid.NewGuid().ToString();
+		/// Setting saved camera poses
+		simMap.userData = JsonConvert.SerializeObject(simCameraPoses.cameraPoses);
+		string jsonMap = JsonConvert.SerializeObject(simMap);
+
+		/// The file does not exist yet OR The file exists but does not contain '[]'
+		if( !File.Exists(Application.dataPath + simMapFileName) || File.ReadAllText(Application.dataPath + simMapFileName).ToString() == "") {
+			File.WriteAllText(Application.dataPath + simMapFileName, "[" + jsonMap +"]");
+		} else {
+			string currMapData = File.ReadAllText(Application.dataPath + simMapFileName);
+			var mapInfoList = JsonConvert.DeserializeObject<List<MapInfo>>(currMapData);
+			/// The file exists but has no maps
+			if (mapInfoList == null){
+				File.WriteAllText(Application.dataPath + simMapFileName, jsonMap);
+			} else { /// If there is already more than 1 item in the file
+				mapInfoList.Add(simMap);
+				var convertedJson = JsonConvert.SerializeObject(mapInfoList);
+				File.WriteAllText(Application.dataPath + simMapFileName, convertedJson );
+			}
+		}
+
+		savedCb (simMap.placeId);
 		progressCb (true, false, 1.0f);
 		#endif
 	}
@@ -757,11 +941,19 @@ public class LibPlacenote : MonoBehaviour
 	/// </param>
 	public void LoadMap (String mapId, Action<bool, bool, float> loadProgressCb)
 	{
-		IntPtr cSharpContext = GCHandle.ToIntPtr (GCHandle.Alloc (loadProgressCb));
-
 		#if !UNITY_EDITOR
+		IntPtr cSharpContext = GCHandle.ToIntPtr (GCHandle.Alloc (loadProgressCb));
 		PNLoadMap (mapId, OnMapLoaded, cSharpContext);
 		#else
+		mLocalization = true;
+		// Reads maps from file as JSON
+		string mapData = File.ReadAllText(Application.dataPath + simMapFileName);
+		MapInfo[] mapList = JsonConvert.DeserializeObject<MapInfo[]> (mapData);
+		for(int i = 0; i < mapList.Length; i++){
+			if (mapId == mapList[i].placeId)
+				simMap = mapList[i];
+		}
+		simCameraPoses.cameraPoses = JsonConvert.DeserializeObject<List<PNTransformUnity>> (simMap.userData.ToString() );
 		loadProgressCb (true, false, 1.0f);
 		#endif
 	}
@@ -803,10 +995,31 @@ public class LibPlacenote : MonoBehaviour
 	/// </param>
 	public void DeleteMap (String mapId, Action<bool, string> deletedCb)
 	{
-		IntPtr cSharpContext = GCHandle.ToIntPtr (GCHandle.Alloc (deletedCb));
 		#if !UNITY_EDITOR
+		IntPtr cSharpContext = GCHandle.ToIntPtr (GCHandle.Alloc (deletedCb));
 		PNDeleteMap (mapId, OnMapDeleted, cSharpContext);
 		#else
+		// Reading map
+		string mapData = File.ReadAllText(Application.dataPath + simMapFileName);
+		MapInfo[] mapList = JsonConvert.DeserializeObject<MapInfo[]> (mapData);
+		if(mapList.Length == 1){
+			/// Reseting brackets for array in json file
+			File.WriteAllText(Application.dataPath + simMapFileName, "[]" );
+		} else {
+			for(int i = 0; i < mapList.Length; i++){
+				if (mapId == mapList[i].placeId){
+					/// Delete map from array
+					for (int j = i; j < mapList.Length-1; j++)
+						mapList[j] = mapList[j+1];
+					Array.Resize(ref mapList, mapList.Length - 1);
+					break;
+				}
+			}
+			/// Resaving map
+			var convertedJson = JsonConvert.SerializeObject(mapList);
+			File.WriteAllText(Application.dataPath + simMapFileName, convertedJson );
+		}
+
 		deletedCb (true, "Success");
 		#endif
 	}
@@ -823,9 +1036,11 @@ public class LibPlacenote : MonoBehaviour
 	{
 		int lmSize = 0;
 		PNFeaturePointUnity[] map = new PNFeaturePointUnity [1];
-
 		#if !UNITY_EDITOR
 		lmSize = PNGetAllLandmarks (map, 0);
+
+		#else
+
 		#endif
 
 		if (lmSize == 0) {
@@ -836,6 +1051,8 @@ public class LibPlacenote : MonoBehaviour
 		#if !UNITY_EDITOR
 		Array.Resize (ref map, lmSize);
 		PNGetAllLandmarks (map, lmSize);
+
+
 		#endif
 
 		return map;

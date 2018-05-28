@@ -1,12 +1,9 @@
-﻿using _DevicePosNs;
-using EnemiesNs;
+﻿using EnemiesNs;
 using PlayerNs;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 using WeaponNs;
-using TargetNs;
 using PunServerNs;
 using Placenote;
 
@@ -26,9 +23,6 @@ namespace GameplayNs
 
         [Header ("Setup enemies here")]
         public EnemyLibrary Lib;
-
-        [Header ("Setup target here")]
-        public TargetLibrary Target;
 
         [Header ("Public for debug purposes only")]
         public List<RespawnPoint> Respawns;
@@ -118,11 +112,6 @@ namespace GameplayNs
         public static string EnemyDamageReceiverName
         {
             get { return Instance.Lib.DamageReceiverMethodName; }
-        }
-
-        public static string TargetHitReceiverName
-        {
-            get { return Instance.Target.TargetHitReceiverMethodName; }
         }
 
         public PlayerController _currentPlayer;
