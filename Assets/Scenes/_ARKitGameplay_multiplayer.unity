@@ -2345,8 +2345,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d256611c5e7b4364e8304aaa9db81bf9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ObjectsToDelete:
-  - {fileID: 0}
+  ObjectsToDelete: []
 --- !u!114 &440689246
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2732,7 +2731,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &595045236
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2741,7 +2740,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 595045235}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d49dc6464e0978f4ebf8e73cb829c68c, type: 3}
+  m_Script: {fileID: 11500000, guid: 5d3e4b5e336064ab7989ffcadd086bcf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   DoOnce: 1
