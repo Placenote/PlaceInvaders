@@ -1,12 +1,8 @@
-﻿using System.Collections.Generic;
-using System.Collections;
-using System.Xml;
+﻿using System.Collections;
 using GameplayNs;
-using Placenote;
 using UnityEngine;
 using UnityEngine.UI;
 using PunServerNs;
-using TargetNs;
 
 namespace GameUiNs
 {

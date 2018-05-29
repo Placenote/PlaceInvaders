@@ -1,12 +1,9 @@
-﻿using _DevicePosNs;
-using EnemiesNs;
+﻿using EnemiesNs;
 using PlayerNs;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 using WeaponNs;
-using TargetNs;
 using PunServerNs;
 using Placenote;
 
@@ -26,9 +23,6 @@ namespace GameplayNs
 
         [Header ("Setup enemies here")]
         public EnemyLibrary Lib;
-
-        [Header ("Setup target here")]
-        public TargetLibrary Target;
 
         [Header ("Public for debug purposes only")]
         public List<RespawnPoint> Respawns;
@@ -120,11 +114,6 @@ namespace GameplayNs
             get { return Instance.Lib.DamageReceiverMethodName; }
         }
 
-        public static string TargetHitReceiverName
-        {
-            get { return Instance.Target.TargetHitReceiverMethodName; }
-        }
-
         public PlayerController _currentPlayer;
         public static PlayerController CurrentPlayer
         {
@@ -189,6 +178,7 @@ namespace GameplayNs
 
         public static void StartGame ()
         {
+            SetupWorldRootCoordinates (Instance._currentPlayer.transform.position, Instance._currentPlayer.transform.rotation);
             Data.OnStartGame ();
         }
 
@@ -260,7 +250,7 @@ namespace GameplayNs
             if (CurrentPlayer.IsLocalPlayer)
             {
                 newEnemy = Instantiate (prefab, WorldRootObject.transform, false);
-                newEnemy.transform.position = new Vector3 (spawnDistance * Mathf.Sin (angle), 0, spawnDistance * Mathf.Cos (angle));
+                newEnemy.transform.position += new Vector3 (spawnDistance * Mathf.Sin (angle), 0, spawnDistance * Mathf.Cos (angle));
                 newEnemy.transform.LookAt (Vector3.zero);
             }
             else
