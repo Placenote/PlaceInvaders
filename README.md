@@ -2,7 +2,7 @@
 
 ### Multiplayer Place Invaders using Placenote Unity SDK with ARkit and Photon
 
-Placenote SDK: 1.5.0
+Placenote SDK: 1.5.1
 
 Project's Unity Version: 2018.1.1f1
 
