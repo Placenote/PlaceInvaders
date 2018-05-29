@@ -23,19 +23,4 @@ public class WorldRoot : MonoBehaviour
     {
         gameObject.AddComponent<EventSystemChecker> ();
     }
-
-    public void ClearObjectsToDelete ()
-    {
-        for (int i = 0; i < ObjectsToDelete.Count; i++)
-        {
-            if (ObjectsToDelete[i] != null)
-                Destroy (ObjectsToDelete[i]);
-        }
-
-        if (_DevicePos.IsReady)
-        {
-            transform.position = _DevicePos.FloorPosition;
-            transform.rotation = _DevicePos.FloorRotation;
-        }
-    }
 }

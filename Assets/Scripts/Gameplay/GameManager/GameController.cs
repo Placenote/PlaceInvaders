@@ -178,6 +178,7 @@ namespace GameplayNs
 
         public static void StartGame ()
         {
+            SetupWorldRootCoordinates (Instance._currentPlayer.transform.position, Instance._currentPlayer.transform.rotation);
             Data.OnStartGame ();
         }
 
@@ -249,7 +250,7 @@ namespace GameplayNs
             if (CurrentPlayer.IsLocalPlayer)
             {
                 newEnemy = Instantiate (prefab, WorldRootObject.transform, false);
-                newEnemy.transform.position = new Vector3 (spawnDistance * Mathf.Sin (angle), 0, spawnDistance * Mathf.Cos (angle));
+                newEnemy.transform.position += new Vector3 (spawnDistance * Mathf.Sin (angle), 0, spawnDistance * Mathf.Cos (angle));
                 newEnemy.transform.LookAt (Vector3.zero);
             }
             else
