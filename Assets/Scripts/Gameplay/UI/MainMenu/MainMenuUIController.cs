@@ -47,6 +47,9 @@ namespace GameUiNs
         private RoomInfo[] roomsArray;
         public Text ViewRoomsText;
 
+        // SDK Feedback
+        public GameObject SDKFailedPanel;
+
         #endregion Main UI Elements
 
 
@@ -69,8 +72,8 @@ namespace GameUiNs
             // Joining path.
             JoinGameBtn.onClick.AddListener (ActivateViewRoomsUI);
 
-            // SinglePlayer path.
-            SinglePlayerBtn.onClick.AddListener (StartSinglePlayer);
+            // SinglePlayer path. // TODO Delete singleplayer
+            // SinglePlayerBtn.onClick.AddListener (StartSinglePlayer);
 
             Initialize ();
         }
@@ -102,16 +105,28 @@ namespace GameUiNs
 
         private void HostRoom ()
         {
-            string hostingRoomName;
-            if (string.IsNullOrEmpty (HostingRoomNameInput.text))
-                hostingRoomName = "Untitled";
-            else
-                hostingRoomName = HostingRoomNameInput.text;
+
             // Hide MenuUIs
             GameObject prevUI = (GameObject)UIStack.Peek ();
             prevUI.SetActive (false);
             BackBtn.gameObject.SetActive (false);
             LoadingCircle.SetActive (true);
+
+            string hostingRoomName = null;
+
+            if (!LibPlacenote.Instance.Initialized ()) //TODO put this in better spot
+            {
+                SDKFailed ();
+                return;
+            }
+
+            if (string.IsNullOrEmpty (HostingRoomNameInput.text))
+            {
+                FailToCreateRoom ();
+                return;
+            }
+            else
+                hostingRoomName = HostingRoomNameInput.text;
 
             // TODO Host the room then when room is hosted callback to GameSetupController to start mapping
             Server.HostRoom (hostingRoomName);
@@ -119,12 +134,23 @@ namespace GameUiNs
 
         private void ActivateViewRoomsUI ()
         {
+            if (!LibPlacenote.Instance.Initialized ()) //TODO put this in better spot
+            {
+                SDKFailed ();
+                return;
+            }
+
             Server.Connect ();
             LoadingCircle.SetActive (true);
             ViewRoomsText.text = "";
             DeleteViewRooms ();
             if (ViewRoomsPanel != null)
                 ActivateUI (ViewRoomsPanel);
+            if (Application.internetReachability == NetworkReachability.NotReachable)
+            {
+                ViewRoomsText.text = "There are no rooms available...\nMake sure your device is connected to the internet.";
+                LoadingCircle.SetActive (false);
+            }
         }
 
         public void GoBack ()
@@ -161,15 +187,14 @@ namespace GameUiNs
 
         }
 
+        //TODO Delete 
         private void StartSinglePlayer ()
         {
             // Hide MenuUIs
-            GameObject prevUI = (GameObject)UIStack.Peek ();
-            prevUI.SetActive (false);
-            BackBtn.gameObject.SetActive (false);
-
-
-            GameSetup.EnvironmentMappingStart ();
+            // GameObject prevUI = (GameObject)UIStack.Peek ();
+            // prevUI.SetActive (false);
+            // BackBtn.gameObject.SetActive (false);
+            // GameSetup.EnvironmentMappingStart ();
         }
 
         #endregion > Buttons On Click Events
@@ -186,6 +211,8 @@ namespace GameUiNs
             DeleteViewRooms ();
             // Show loading circle while finding rooms
             LoadingCircle.SetActive (true);
+            Debug.Log (Application.internetReachability == NetworkReachability.NotReachable);
+
 
             int counter = 0;
             roomsArray = Server.GetRooms ();
@@ -224,6 +251,7 @@ namespace GameUiNs
             }
             else
                 ViewRoomsText.text = "";
+
         }
 
         /// <summary>
@@ -245,6 +273,7 @@ namespace GameUiNs
             GameObject currentUI = (GameObject)UIStack.Peek ();
             currentUI.SetActive (false);
             BackBtn.gameObject.SetActive (false);
+            LoadingCircle.SetActive (false);
             FailToCreateRoomPanel.SetActive (true);
         }
 
@@ -259,6 +288,15 @@ namespace GameUiNs
             prevUI.SetActive (true);
             BackBtn.gameObject.SetActive (true);
             LoadingCircle.SetActive (false);
+        }
+
+        public void SDKFailed ()
+        {
+            GameObject currentUI = (GameObject)UIStack.Peek ();
+            currentUI.SetActive(false);
+            BackBtn.gameObject.SetActive(false);
+            LoadingCircle.SetActive(false);
+            SDKFailedPanel.SetActive(true);
         }
 
         #endregion  Dynamic UI generation

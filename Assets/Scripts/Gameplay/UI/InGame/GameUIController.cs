@@ -26,6 +26,7 @@ namespace GameUiNs
         public Button FinishMappingBtn;
         public Button MainMenuBtn;
         public Text HelperText;
+        public GameObject HelperTextPanel;
         public Button OpenMenuBtn;
         Button shotBtn;
 
@@ -80,6 +81,7 @@ namespace GameUiNs
                     OpenMenuBtn.gameObject.SetActive (true);
                     CrossHairPanel.gameObject.SetActive (false);
                     HelperText.gameObject.SetActive (true);
+                    HelperTextPanel.SetActive (true);
                     if (PhotonNetwork.connected)
                     {
                         if (Server.IsHost)
@@ -114,6 +116,7 @@ namespace GameUiNs
                     StartGameBtn.gameObject.SetActive (false);
                     ButtonPanel.SetActive (true);
                     HelperText.gameObject.SetActive (false);
+                    HelperTextPanel.SetActive (false);
                     break;
             }
         }

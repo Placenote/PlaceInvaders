@@ -7,7 +7,7 @@ namespace EnemiesNs
     public class RespawnPoint : EventsSubscriber
     {
         private float TimeBetweenSpawns = 8f;
-        private int LoopsUntilSpawnDecrease = 3;
+        private int LoopsUntilSpawnDecrease = 6;
 
         void Start ()
         {
@@ -20,7 +20,8 @@ namespace EnemiesNs
             while (GameController.Data.GameState == GameStateId.GamePlaying)
             {
                 // Creates enemy
-                if (GameController.Data.GameState == GameStateId.GamePlaying)
+                if (GameController.Data.GameState == GameStateId.GamePlaying
+                    && GameController.Data.TotalEnemies < 4 * GameController.Data.PlayersInRoom)
                 {
                     // Create 1 enemy per player in the room
                     for (int i = 0; i < GameController.Data.PlayersInRoom; i++)
@@ -32,8 +33,8 @@ namespace EnemiesNs
                 yield return new WaitForSecondsRealtime (TimeBetweenSpawns);
                 if (LoopsUntilSpawnDecrease <= 0)
                 {
-                    LoopsUntilSpawnDecrease = 3;
-                    if (TimeBetweenSpawns > 2f)
+                    LoopsUntilSpawnDecrease = 6;
+                    if (TimeBetweenSpawns > 4f)
                         TimeBetweenSpawns--;
                 }
             }
@@ -46,7 +47,7 @@ namespace EnemiesNs
                 case GameData.SomethingId.GameStart:
                     Debug.Log ("STARTING SPAWNING");
                     TimeBetweenSpawns = 8f;
-                    LoopsUntilSpawnDecrease = 3;
+                    LoopsUntilSpawnDecrease = 6;
                     StartCoroutine (Creation ());
                     break;
                 case GameData.SomethingId.ToMainMenu:

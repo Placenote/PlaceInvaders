@@ -63,10 +63,13 @@ namespace GameplayNs
                                                                    ((id) => Debug.Log ("Sent " + id));
         public event Action NotifySomeDataChanged = delegate { };
 
+        public int TotalEnemies { get; set; }
+
         public void Reset ()
         {
             PlayerData.Reset ();
             NotifySomeDataChanged ();
+            TotalEnemies = 0; // TODO check that this does not need to be a server property 
         }
 
         public void OnPrepareGame ()

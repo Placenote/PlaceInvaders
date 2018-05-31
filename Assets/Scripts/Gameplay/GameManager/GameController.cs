@@ -263,6 +263,7 @@ namespace GameplayNs
                 newEnemy.transform.LookAt (Vector3.zero);
                 newEnemy.transform.parent = WorldRootObject.transform;
             }
+            Data.TotalEnemies++;
         }
 
         #endregion  wrappers for using with Unity Event triggers

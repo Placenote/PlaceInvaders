@@ -213,6 +213,14 @@ namespace PunServerNs
                 string playerName = "Player" + Mathf.FloorToInt (pseudoUID);
                 PhotonNetwork.playerName = playerName;
                 Debug.Log ("userid " + PhotonNetwork.player.UserId);
+                // Checks connection if host
+                if (IsHost && Application.internetReachability == NetworkReachability.NotReachable)
+                {
+                    MainMenuUI.FailToCreateRoom ();
+                    IsHost = false;
+                    return;
+                }
+
                 PhotonNetwork.ConnectUsingSettings (GameNetVersion);
                 SetNetState (NetGameStateId.Connecting, "Connecting started");
             }

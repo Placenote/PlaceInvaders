@@ -9,7 +9,7 @@ namespace WeaponNs
     [System.Serializable]
     public class AimingProperties
     {
-        public float MaxDistance = 10;
+        public float MaxDistance = 20;
         public LayerMask ShotableItems;
 
         public void CheckAndFix ()
