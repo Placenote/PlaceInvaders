@@ -34,6 +34,7 @@ namespace EnemiesNs
                 else
                     Instantiate (DeathPrefab, transform.position, transform.rotation);
 
+            GameController.Data.TotalEnemies--;
             Destroy (gameObject);
         }
 

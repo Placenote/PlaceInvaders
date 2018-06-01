@@ -39,7 +39,7 @@ namespace GameplayNs
             GameController.PrepareGame ();
             // Start mapping
             var startScan = EnvironmentScannerController.Instance.StartMapping ();
-            GameUI.HelperText.text = "Mapping Started! Move your camera around to create a map.";
+            GameUI.HelperText.text = "Move your phone around to create a map.";
             if (startScan)
                 FeaturesVisualizer.EnablePointcloud ();
         }
@@ -141,6 +141,7 @@ namespace GameplayNs
                         else
                         {
                             GameUI.HelperText.text = "Game start!";
+                            StartCoroutine (HideHelperText ());
                             GameController.StartGame ();
                         }
 
@@ -185,6 +186,7 @@ namespace GameplayNs
                 // Room changes its status to playing
                 Server.CurrRoomStatus = ServerController.RoomStatus.Playing;
                 GetComponent<PhotonView> ().RPC ("StartGameRPC", PhotonTargets.Others);
+                StartCoroutine (HideHelperText ());
             }
 
             GameUI.HelperText.text = "Game start!"; // TODO fix this so that ui is being handled in the controller
@@ -198,6 +200,7 @@ namespace GameplayNs
             if (IsLocalized)
             {
                 GameUI.HelperText.text = "Game start!";
+                StartCoroutine (HideHelperText ());
                 GameController.StartGame ();
             }
             else
@@ -207,5 +210,12 @@ namespace GameplayNs
         }
 
         #endregion Game events
+
+        IEnumerator HideHelperText ()
+        {
+            yield return new WaitForSeconds (2f);
+            GameUI.HelperTextPanel.SetActive (false);
+        }
+
     }
 }
