@@ -17,11 +17,11 @@ public class FeaturesVisualizer : MonoBehaviour, PlacenoteListener
 		sInstance = this;
 	}
 
-    void Start ()
-    {
-        // This is required for OnPose and OnStatusChange to be triggered
-        LibPlacenote.Instance.RegisterListener (this);
-    }
+	void Start ()
+	{
+		// This is required for OnPose and OnStatusChange to be triggered
+		LibPlacenote.Instance.RegisterListener (this);
+	}
 
 	void Update ()
 	{

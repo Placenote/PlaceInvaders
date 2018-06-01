@@ -24,7 +24,6 @@ namespace GameUiNs
         public GameObject MainMenuPanel;
         public Button JoinGameBtn;
         public Button HostGameBtn;
-        public Button SinglePlayerBtn;
 
         // Back Button.
         public Button BackBtn;
@@ -71,9 +70,6 @@ namespace GameUiNs
 
             // Joining path.
             JoinGameBtn.onClick.AddListener (ActivateViewRoomsUI);
-
-            // SinglePlayer path. // TODO Delete singleplayer
-            // SinglePlayerBtn.onClick.AddListener (StartSinglePlayer);
 
             Initialize ();
         }
@@ -185,16 +181,6 @@ namespace GameUiNs
             UIStack.Push (UIToActivate);
             UIToActivate.SetActive (!UIToActivate.activeSelf);
 
-        }
-
-        //TODO Delete 
-        private void StartSinglePlayer ()
-        {
-            // Hide MenuUIs
-            // GameObject prevUI = (GameObject)UIStack.Peek ();
-            // prevUI.SetActive (false);
-            // BackBtn.gameObject.SetActive (false);
-            // GameSetup.EnvironmentMappingStart ();
         }
 
         #endregion > Buttons On Click Events

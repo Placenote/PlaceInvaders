@@ -2344,7 +2344,6 @@ MonoBehaviour:
   MainMenuPanel: {fileID: 1671145135}
   JoinGameBtn: {fileID: 1984054167}
   HostGameBtn: {fileID: 1248002211}
-  SinglePlayerBtn: {fileID: 1910685508}
   BackBtn: {fileID: 1622661166}
   LoadingCircle: {fileID: 1079949896}
   CreateHostRoomPanel: {fileID: 285842290}
