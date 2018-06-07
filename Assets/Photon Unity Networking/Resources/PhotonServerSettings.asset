@@ -23,7 +23,7 @@ MonoBehaviour:
   VoiceServerPort: 5055
   JoinLobby: 1
   EnableLobbyStatistics: 0
-  PunLogging: 2
+  PunLogging: 0
   NetworkLogging: 0
   RunInBackground: 1
   RpcList:
@@ -59,4 +59,9 @@ MonoBehaviour:
   - EnvironmentMappingCompleteRPC
   - MappingStarted
   - HostLeftRPC
+  - MappingStartedRPC
+  - LoadMapRPC
+  - UpdatePlayerValueRPC
+  - HostStartedGameRPC
+  - PlayerRevived
   DisableAutoOpenWizard: 1

@@ -61,11 +61,11 @@ namespace WeaponNs
             if ((PhotonNetwork.offlineMode || !PhotonNetwork.connected) || photonView.isMine)
             {
                 // TODO If in preparing game send message that is target
-                if (GameController.Data.GameState == GameStateId.GameWaitingStart)
+                if (GameController.Instance.Data.GameState == GameStateId.GameWaitingStart)
                     hit.transform.SendMessage ("Hit", SendMessageOptions.DontRequireReceiver);
                 // TODO if in game send message that is enemy
                 else
-                    hit.transform.SendMessage (GameController.EnemyDamageReceiverName, DamageAmount, SendMessageOptions.DontRequireReceiver);
+                    hit.transform.SendMessage (GameController.Instance.EnemyDamageReceiverName, DamageAmount, SendMessageOptions.DontRequireReceiver);
             }
         }
 
@@ -136,7 +136,7 @@ namespace WeaponNs
             {
                 if (AimData.IsHit
                     && AimData.HitOfRay.transform != null
-                    && AimData.HitOfRay.transform.CompareTag (GameController.EnemyTag))
+                    && AimData.HitOfRay.transform.CompareTag (GameController.Instance.EnemyTag))
                 {
                     ShowHit (AimData.HitOfRay.point);
                     MakeDamage (AimData.HitOfRay, DamageAmount * Time.deltaTime);
