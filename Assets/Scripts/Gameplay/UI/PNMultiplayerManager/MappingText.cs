@@ -36,47 +36,29 @@ namespace GameUiNs
             mappingText.text = "Failed to start mapping session. Please restart app...";
         }
 
-        #region Mapping callbacks
+        #region Mapping status and progress
 
-        public void MapSavingProgress (float progress)
+        protected override void OnMapSavingProgressUpdate (float progress)
         {
             mappingText.text = "Saving Progress..." + (progress * 100f) + "%";
         }
 
-        public void MapSavingStatus (bool savingResult)
+        protected override void OnMapSavingStatusUpdate (bool savingResult)
         {
             mappingText.text = "Saving " + (savingResult ? "success!" : "Error!");
         }
 
-        public void MapLoadingProgress (float progress)
+        protected override void OnMapLoadingProgressUpdate (float progress)
         {
             mappingText.text = "Loading Map..." + (progress * 100f) + "%";
         }
 
-        public void MapLoadingStatus (bool loadingResult)
+        protected override void OnMapLoadingStatusUpdate (bool loadingResult)
         {
             mappingText.text = "Loading " + (loadingResult ? "success!" : "Error!");
         }
 
-        #endregion Mapping callbacks
-
-        // When mapping is complete all current players should being loading the map
-        protected override void OnMappingComplete ()
-        {
-            GetComponent<PhotonView> ().RPC ("LoadMapRPC", PhotonTargets.All);
-        }
-
-        // If player joins an already mapped room, then begin loading the map
-        protected override void OnJoinedMappedRoom ()
-        {
-            PlacenoteMultiplayerManager.Instance.LoadLatestMap (MapLoadingStatus, MapLoadingProgress);
-        }
-
-        [PunRPC]
-        public void LoadMapRPC ()
-        {
-            PlacenoteMultiplayerManager.Instance.LoadLatestMap (MapLoadingStatus, MapLoadingProgress);
-        }
+        #endregion Mapping status and progress
 
         protected override void OnLocalizationLost ()
         {

@@ -36,6 +36,12 @@ namespace Placenote
             PlacenoteMultiplayerManager.Instance.OnMappingFailedEvent += OnMappingFailed;
             PlacenoteMultiplayerManager.Instance.OnMappingCompleteEvent += OnMappingComplete;
 
+            // Mapping progress events
+            PlacenoteMultiplayerManager.Instance.OnMapSavingStatusUpdateEvent += OnMapSavingStatusUpdate;
+            PlacenoteMultiplayerManager.Instance.OnMapSavingProgressUpdateEvent += OnMapSavingProgressUpdate;
+            PlacenoteMultiplayerManager.Instance.OnMapLoadingStatusUpdateEvent += OnMapLoadingStatusUpdate;
+            PlacenoteMultiplayerManager.Instance.OnMapLoadingProgressUpdateEvent += OnMapLoadingProgressUpdate;
+
             // Localization events
             PlacenoteMultiplayerManager.Instance.OnLocalizationLostEvent += OnLocalizationLost;
             PlacenoteMultiplayerManager.Instance.OnLocalizatedEvent += OnLocalized;
@@ -115,6 +121,34 @@ namespace Placenote
         protected virtual void OnMappingComplete () { }
 
         #endregion Mapping events
+
+        #region Mapping progress events
+
+        /// <summary>
+        /// Called when the Placenote session finishes saving a map.
+        /// Sends result of saving.
+        /// </summary>
+        protected virtual void OnMapSavingStatusUpdate (bool savingResult) {}
+
+        /// <summary>
+        /// Called continuously while map saving is happening.
+        /// Sends current saving progress.
+        /// </summary>
+        protected virtual void OnMapSavingProgressUpdate (float progress) {}
+
+        /// <summary>
+        /// Called when the Placenote session finishes loading a map.
+        /// Sends result of loading.
+        /// </summary>
+        protected virtual void OnMapLoadingStatusUpdate (bool loadingResult) {}
+
+        /// <summary>
+        /// Called continuously while map loading is happening.
+        /// Send current loading progress
+        /// </summary>
+        protected virtual void OnMapLoadingProgressUpdate (float progress) {}
+
+        #endregion Mapping progress events
 
         #region Localization events
 

@@ -5876,7 +5876,6 @@ GameObject:
   - component: {fileID: 1385063774}
   - component: {fileID: 1385063773}
   - component: {fileID: 1385063772}
-  - component: {fileID: 1385063776}
   m_Layer: 5
   m_Name: MappingText
   m_TagString: Untagged
@@ -5971,32 +5970,6 @@ CanvasRenderer:
     type: 2}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1385063770}
---- !u!114 &1385063776
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1385063770}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ownerId: 0
-  group: 0
-  OwnerShipWasTransfered: 0
-  prefixBackup: -1
-  synchronization: 0
-  onSerializeTransformOption: 3
-  onSerializeRigidBodyOption: 2
-  ownershipTransfer: 0
-  ObservedComponents:
-  - {fileID: 0}
-  ObservedComponentsFoldoutOpen: 1
-  viewIdField: 2
-  instantiationId: 2
-  currentMasterID: -1
-  isRuntimeInstantiated: 0
 --- !u!1001 &1432029195
 Prefab:
   m_ObjectHideFlags: 0
@@ -7971,7 +7944,6 @@ GameObject:
   - component: {fileID: 1899827680}
   - component: {fileID: 1899827679}
   - component: {fileID: 1899827678}
-  - component: {fileID: 1899827677}
   m_Layer: 5
   m_Name: FinishMappingBtn
   m_TagString: Untagged
@@ -7979,19 +7951,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1899827677
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 114475653960956570, guid: 15d96db727bb34e0ca47d5a7b923eaea,
-    type: 2}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1899827676}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 87611d476444e448c8af7ff492bac45b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  mappingText: {fileID: 1385063772}
 --- !u!114 &1899827678
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8058,8 +8017,8 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-      - m_Target: {fileID: 1899827677}
-        m_MethodName: FinishMapping
+      - m_Target: {fileID: 954726737}
+        m_MethodName: StopMapping
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

@@ -170,7 +170,7 @@ namespace GameplayNs
             // Create enemy at worldRoot
             newEnemy = PhotonNetwork.InstantiateSceneObject (
                     prefab.name,
-                WorldRootObject.transform.position,
+                    WorldRootObject.transform.position,
                     Quaternion.identity,
                     0, null);
             // Offset enemy position by the spawnDistance

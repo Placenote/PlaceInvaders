@@ -42,6 +42,12 @@ namespace Placenote
         public event Action OnMappingFailedEvent = delegate { };
         public event Action OnMappingCompleteEvent = delegate { };
 
+        // Mapping progress events
+        public event Action<bool> OnMapSavingStatusUpdateEvent = delegate { };
+        public event Action<float> OnMapSavingProgressUpdateEvent = delegate { };
+        public event Action<bool> OnMapLoadingStatusUpdateEvent = delegate { };
+        public event Action<float> OnMapLoadingProgressUpdateEvent = delegate { };
+
         // Localization events
         public event Action OnLocalizationLostEvent = delegate { };
         public event Action OnLocalizatedEvent = delegate { };
@@ -96,7 +102,7 @@ namespace Placenote
         /// Saved as Custom property of room, so other players can filter their viewable 
         /// rooms using GetListOfNearbyRooms
         /// </summary>
-        private float[] mRoomGPS
+        private float[] RoomGPS
         {
             get { return (float[])PhotonNetwork.room.CustomProperties["GPS"]; }
             set
@@ -114,7 +120,7 @@ namespace Placenote
         /// The host sets this value when they finish mapping.
         /// Saved as Custom property of room, so other players can load map after joining room.
         /// </summary>
-        private string mLatestMapId
+        private string LatestMapId
         {
             get { return (string)PhotonNetwork.room.CustomProperties["MapId"]; }
             set
@@ -499,7 +505,7 @@ namespace Placenote
                 if (StartMapping ())
                 {
                     // The room has been successfully created, now set the GPS, so other players can join
-                    mRoomGPS = mUserGPS;
+                    RoomGPS = mUserGPS;
                     HasRoomStarted = false;
                     // No players have started playing yet
                     TotalPlayersPlaying = 0;
@@ -511,8 +517,11 @@ namespace Placenote
             }
             else
             {
-                if (mLatestMapId != null)
+                // If you are not the host and you join a room with a map id
+                // then load that m
+                if (LatestMapId != null)
                 {
+                    LoadLatestMap ();
                     OnJoinedMappedRoomEvent ();
                 }
             }
@@ -523,13 +532,13 @@ namespace Placenote
         public override void OnPhotonPlayerConnected (PhotonPlayer newPlayer)
         {
             Debug.Log ("Photon OnPhotonPlayerConnected");
-            UpdatePlayerValueRPC ();
+            mPhotonView.RPC ("UpdatePlayerValueRPC", PhotonTargets.All);
         }
 
         public override void OnPhotonPlayerDisconnected (PhotonPlayer newPlayer)
         {
             Debug.Log ("Photon OnPhotonPlayerDisconnected");
-            UpdatePlayerValueRPC ();
+            mPhotonView.RPC ("UpdatePlayerValueRPC", PhotonTargets.All);
         }
 
         public override void OnDisconnectedFromPhoton ()
@@ -566,7 +575,7 @@ namespace Placenote
             Debug.Log ("Photon OnMasterClientSwitched");
             // If this client is now the new Master client, 
             // and there is no map yet then start the mapping process
-            if (PhotonNetwork.isMasterClient && string.IsNullOrEmpty (mLatestMapId))
+            if (PhotonNetwork.isMasterClient && string.IsNullOrEmpty (LatestMapId))
             {
                 IsHost = true;
                 StartMapping ();
@@ -608,9 +617,7 @@ namespace Placenote
         /// they are the only player mapping.
         /// Calls OnMappingCompleteEvent.
         /// </summary>
-        /// <param name="savingStatusCb">Optional callback that is invoked after map is saved.</param>
-        /// <param name="savingProgressCb">Optional callback that is invoked continuously during map saving.</param>
-        public void StopMapping (Action<bool> savingStatusCb = null, Action<float> savingProgressCb = null)
+        public void StopMapping ()
         {
             // Disable visable point cloud
             FeaturesVisualizer.DisablePointcloud ();
@@ -619,14 +626,13 @@ namespace Placenote
             // Saves map and gives feedback via EnvironmentMappingProgress() and EnvironmentMappingComplete()
             LibPlacenote.Instance.SaveMap ((mapId) =>
             {
-                mLatestMapId = mapId;
+                LatestMapId = mapId;
             }, (completed, faulted, percentage) =>
             {
                 if (!completed && !faulted)
                 {
                     Debug.Log ("Saving Progress..." + (percentage * 100f) + "%");
-                    if (savingProgressCb != null)
-                        savingProgressCb.Invoke (percentage);
+                    OnMapSavingProgressUpdateEvent (percentage);
                 }
                 else
                 {
@@ -634,70 +640,67 @@ namespace Placenote
                     LibPlacenote.Instance.StopSession (); 
                     bool savingSuccess = !faulted;
                     Debug.Log ("Saving " + (savingSuccess ? "success!" : "Error!"));
-                    if (savingStatusCb != null)
-                        savingStatusCb (savingSuccess);
+                    OnMapSavingStatusUpdateEvent (savingSuccess);
                     if (savingSuccess)
+                    {
+                        // When mapping is complete all current players should begin loading the map
+                        mPhotonView.RPC ("LoadMapRPC", PhotonTargets.All);
                         OnMappingCompleteEvent ();
+                    }
                 }
             });
         }
 
-        #endregion > Mapping session
+#endregion > Mapping session
 
-        #region > Loading Map
+#region > Loading Map
+
+        [PunRPC]
+        public void LoadMapRPC ()
+        {
+            LoadLatestMap ();
+        }
 
         /// <summary>
         /// Loads the latest map.
         /// </summary>
-        /// <param name="loadingStatusCb">Optional callback that is invoked after map is loaded.</param>
-        /// <param name="loadingProgressCb">Optional callback that is invoked continuously during map loading.</param>
-        public void LoadLatestMap (Action<bool> loadingStatusCb = null, Action<float> loadingProgressCb = null)
+        public void LoadLatestMap ()
         {
-            if (string.IsNullOrEmpty (mLatestMapId))
+            if (string.IsNullOrEmpty (LatestMapId))
             {
                 Debug.Log ("No mapId is set! Cannot load map");
-                loadingStatusCb.Invoke (false);
+                OnMapLoadingStatusUpdateEvent (false);
                 return;
             }
 
             if (!LibPlacenote.Instance.Initialized ())
             {
                 Debug.Log ("SDK not yet initialized");
-                loadingStatusCb.Invoke (false);
+                OnMapLoadingStatusUpdateEvent (false);
                 return;
             }
 
-            LibPlacenote.Instance.LoadMap (mLatestMapId, (completed, faulted, percentage) =>
+            LibPlacenote.Instance.LoadMap (LatestMapId, (completed, faulted, percentage) =>
             {
                 if (completed)
                 {
                     // Starts Session for localization
                     LibPlacenote.Instance.StartSession ();
-
-                    if (loadingStatusCb != null)
-                    {
-                        loadingStatusCb.Invoke (completed);
-                    }
+                    OnMapLoadingStatusUpdateEvent (completed);
                 }
                 else if (faulted)
                 {
-                    if (loadingStatusCb != null)
-                    {
-                        loadingStatusCb.Invoke (faulted);
-                    }
+                    OnMapLoadingStatusUpdateEvent (faulted);
                 }
                 else
                 {
-                    if (loadingProgressCb != null)
-                    {
-                        loadingProgressCb.Invoke (percentage);
-                    }
+                    OnMapLoadingProgressUpdateEvent (percentage);
                 }
             });
         }
         #endregion > Loading Map
 
-        #region > Quiting Game
+#region > Quiting Game
 
         /// <summary>
         /// Stops Placenote session, leaves photon room, and resets player info.
@@ -841,6 +844,6 @@ namespace Placenote
 
             mSession.SetCapturePixelData (true, mImage.y.data, mImage.vu.data);
         }
-        #endregion ARKit
+#endregion ARKit
     }
 }
