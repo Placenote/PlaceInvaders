@@ -35,6 +35,7 @@ namespace Placenote
             PlacenoteMultiplayerManager.Instance.OnMappingStartEvent += OnMappingStart;
             PlacenoteMultiplayerManager.Instance.OnMappingFailedEvent += OnMappingFailed;
             PlacenoteMultiplayerManager.Instance.OnMappingCompleteEvent += OnMappingComplete;
+            PlacenoteMultiplayerManager.Instance.OnMappingSufficientEvent += OnMappingSufficient;
 
             // Mapping progress events
             PlacenoteMultiplayerManager.Instance.OnMapSavingStatusUpdateEvent += OnMapSavingStatusUpdate;
@@ -44,7 +45,7 @@ namespace Placenote
 
             // Localization events
             PlacenoteMultiplayerManager.Instance.OnLocalizationLostEvent += OnLocalizationLost;
-            PlacenoteMultiplayerManager.Instance.OnLocalizatedEvent += OnLocalized;
+            PlacenoteMultiplayerManager.Instance.OnLocalizedEvent += OnLocalized;
 
             // Game events
             PlacenoteMultiplayerManager.Instance.OnGameStartEvent += OnGameStart;
@@ -119,6 +120,11 @@ namespace Placenote
         /// Called when the mapping session has ended AND the map has saved successfully
         /// </summary>
         protected virtual void OnMappingComplete () { }
+
+        /// <summary>
+        /// Called when the mapping session has sufficient points.
+        /// </summary>
+        protected virtual void OnMappingSufficient () { }
 
         #endregion Mapping events
 

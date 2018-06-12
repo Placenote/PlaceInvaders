@@ -41,6 +41,7 @@ namespace Placenote
         public event Action OnMappingStartEvent = delegate { };
         public event Action OnMappingFailedEvent = delegate { };
         public event Action OnMappingCompleteEvent = delegate { };
+        public event Action OnMappingSufficientEvent = delegate { };
 
         // Mapping progress events
         public event Action<bool> OnMapSavingStatusUpdateEvent = delegate { };
@@ -50,7 +51,7 @@ namespace Placenote
 
         // Localization events
         public event Action OnLocalizationLostEvent = delegate { };
-        public event Action OnLocalizatedEvent = delegate { };
+        public event Action OnLocalizedEvent = delegate { };
 
         // Game events
         public event Action OnGameStartEvent = delegate { };
@@ -616,8 +617,37 @@ namespace Placenote
 
             FeaturesVisualizer.EnablePointcloud ();
             LibPlacenote.Instance.StartSession ();
+            // Start checking amount of map points.
+            sInstance.InvokeRepeating ("CheckMapping", 0f, 0.5f);
             OnMappingStartEvent ();
             return true;
+        }
+
+        /// <summary>
+        /// Invoked by StartMapping.
+        /// Check if the current map has sufficient points to be considered a 
+        /// good map. Requires >50 points each with >=4 measurement count.
+        /// Calls OnMappingSufficientEvent when requirement is met.
+        /// </summary>
+        public void CheckMapping ()
+        {
+            LibPlacenote.PNFeaturePointUnity[] map = LibPlacenote.Instance.GetMap ();
+            int amountOfGoodPoints = 0;
+            if (map != null)
+            {
+                for (int i = 0; i < map.Length; ++i)
+                {
+                    if (map[i].measCount >= 4)
+                    {
+                        amountOfGoodPoints++;
+                    }
+                }   
+            }
+            if (amountOfGoodPoints >= 50) 
+            {
+                sInstance.CancelInvoke ();
+                OnMappingSufficientEvent ();
+            }
         }
 
         /// <summary>
@@ -728,6 +758,8 @@ namespace Placenote
                 // Player is quiting game, so decrease count value.
                 TotalPlayersPlaying -= 1;
             }
+            // Stop checking if map has enough points
+            sInstance.CancelInvoke ();
             // Player is no longer playing or host.
             IsPlaying = false;
             IsHost = false;
@@ -768,7 +800,7 @@ namespace Placenote
         {
             if (currStatus == LibPlacenote.MappingStatus.RUNNING && prevStatus == LibPlacenote.MappingStatus.LOST)
             {
-                OnLocalizatedEvent ();
+                OnLocalizedEvent ();
                 IsLocalized = true;
                 Debug.Log ("LOCALIZED");
             }

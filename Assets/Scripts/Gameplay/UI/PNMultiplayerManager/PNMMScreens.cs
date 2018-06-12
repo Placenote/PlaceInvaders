@@ -21,7 +21,7 @@ namespace GameUiNs
             MappingTextPanel.SetActive (true);
         }
 
-        protected override void OnMappingStart ()
+        protected override void OnMappingSufficient ()
         {
             // Only activate Finish mapping button for the host
             if (PlacenoteMultiplayerManager.Instance.IsHost)
