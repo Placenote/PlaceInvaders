@@ -53,12 +53,16 @@ public class PlacenoteSampleView : MonoBehaviour, PlacenoteListener
 	private List<ShapeInfo> shapeInfoList = new List<ShapeInfo> ();
 	private List<GameObject> shapeObjList = new List<GameObject> ();
 
+	private bool mReportDebug = false;
+
 	private LibPlacenote.MapInfo mSelectedMapInfo;
 	private string mSelectedMapId {
 		get {
 			return mSelectedMapInfo != null ? mSelectedMapInfo.placeId : null;
 		}
 	}
+	private string mSaveMapId = null;
+
 
 	private BoxCollider mBoxColliderDummy;
 	private SphereCollider mSphereColliderDummy;
@@ -147,19 +151,19 @@ public class PlacenoteSampleView : MonoBehaviour, PlacenoteListener
 			Destroy (t.gameObject);
 		}
 
+
 		mMapListPanel.SetActive (true);
 		mInitButtonPanel.SetActive (false);
 		LibPlacenote.Instance.ListMaps ((mapList) => {
 			// render the map list!
 			foreach (LibPlacenote.MapInfo mapId in mapList) {
-				if (mapId.userData != null) {
-					Debug.Log(mapId.userData.ToString (Formatting.None));
+				if (mapId.metadata.userdata != null) {
+					Debug.Log(mapId.metadata.userdata.ToString (Formatting.None));
 				}
 				AddMapToList (mapId);
 			}
 		});
 	}
-
 
 	public void OnCancelClick ()
 	{
@@ -221,9 +225,27 @@ public class PlacenoteSampleView : MonoBehaviour, PlacenoteListener
 					mPlaneDetectionToggle.SetActive(true);
 
 					LibPlacenote.Instance.StartSession ();
+
+					if (mReportDebug) {
+						LibPlacenote.Instance.StartRecordDataset (
+							(datasetCompleted, datasetFaulted, datasetPercentage) => {
+
+								if (datasetCompleted) {
+									mLabelText.text = "Dataset Upload Complete";
+								} else if (datasetFaulted) {
+									mLabelText.text = "Dataset Upload Faulted";
+								} else {
+									mLabelText.text = "Dataset Upload: " + datasetPercentage.ToString ("F2") + "/1.0";
+								}
+							});
+						Debug.Log ("Started Debug Report");
+					}
+
 					mLabelText.text = "Loaded ID: " + mSelectedMapId;
 				} else if (faulted) {
 					mLabelText.text = "Failed to load ID: " + mSelectedMapId;
+				} else {
+					mLabelText.text = "Map Download: " + percentage.ToString ("F2") + "/1.0";
 				}
 			}
 		);
@@ -265,6 +287,22 @@ public class PlacenoteSampleView : MonoBehaviour, PlacenoteListener
 		mPlaneDetectionToggle.SetActive (true);
 		Debug.Log ("Started Session");
 		LibPlacenote.Instance.StartSession ();
+
+		if (mReportDebug) {
+			LibPlacenote.Instance.StartRecordDataset (
+				(completed, faulted, percentage) => {
+					
+					if (completed) {
+						mLabelText.text = "Dataset Upload Complete";
+					} else if (faulted) {
+						mLabelText.text = "Dataset Upload Faulted";
+					} else {
+						mLabelText.text = "Dataset Upload: (" + percentage.ToString ("F2") + "/1.0)";
+					}
+				});
+			Debug.Log ("Started Debug Report");
+		}
+
 	}
 
 	public void OnTogglePlaneDetection() {
@@ -319,6 +357,7 @@ public class PlacenoteSampleView : MonoBehaviour, PlacenoteListener
 			(mapId) => {
 				LibPlacenote.Instance.StopSession ();
 				mLabelText.text = "Saved Map ID: " + mapId;
+				mSaveMapId = mapId;
 				mInitButtonPanel.SetActive (true);
 				mMappingButtonPanel.SetActive (false);
 				mPlaneDetectionToggle.SetActive (false);
@@ -327,21 +366,35 @@ public class PlacenoteSampleView : MonoBehaviour, PlacenoteListener
 				mPNPlaneManager.ClearPlanes ();
 				mPlaneDetectionToggle.GetComponent<Toggle>().isOn = false;
 
+				LibPlacenote.MapMetadataSettable metadata = new LibPlacenote.MapMetadataSettable();
+				metadata.name = RandomName.Get ();
+				mLabelText.text = "Saved Map Name: " + metadata.name;
 
-				JObject metadata = new JObject ();
+				JObject userdata = new JObject ();
+				metadata.userdata = userdata;
 
 				JObject shapeList = Shapes2JSON();
-				metadata["shapeList"] = shapeList;
+				userdata["shapeList"] = shapeList;
 
 				if (useLocation) {
-					metadata["location"] = new JObject ();
-					metadata["location"]["latitude"] = locationInfo.latitude;
-					metadata["location"]["longitude"] = locationInfo.longitude;
-					metadata["location"]["altitude"] = locationInfo.altitude;
+					metadata.location = new LibPlacenote.MapLocation();
+					metadata.location.latitude = locationInfo.latitude;
+					metadata.location.longitude = locationInfo.longitude;
+					metadata.location.altitude = locationInfo.altitude;
 				}
 				LibPlacenote.Instance.SetMetadata (mapId, metadata);
 			},
-			(completed, faulted, percentage) => {}
+			(completed, faulted, percentage) => {
+				if (completed) {
+					mLabelText.text = "Upload Complete:" + mSaveMapId;
+				}
+				else if (faulted) {
+					mLabelText.text = "Upload of Map ID: " + mSaveMapId + "faulted";
+				}
+				else {
+					mLabelText.text = "Uploading Map ID: " + mSaveMapId + "(" + percentage.ToString("F2") + "/1.0)";
+				}
+			}
 		);
 	}
 
@@ -430,7 +483,7 @@ public class PlacenoteSampleView : MonoBehaviour, PlacenoteListener
 		Debug.Log ("prevStatus: " + prevStatus.ToString() + " currStatus: " + currStatus.ToString());
 		if (currStatus == LibPlacenote.MappingStatus.RUNNING && prevStatus == LibPlacenote.MappingStatus.LOST) {
 			mLabelText.text = "Localized";
-			LoadShapesJSON (mSelectedMapInfo.userData);
+			LoadShapesJSON (mSelectedMapInfo.metadata.userdata);
 		} else if (currStatus == LibPlacenote.MappingStatus.RUNNING && prevStatus == LibPlacenote.MappingStatus.WAITING) {
 			mLabelText.text = "Mapping";
 		} else if (currStatus == LibPlacenote.MappingStatus.LOST) {

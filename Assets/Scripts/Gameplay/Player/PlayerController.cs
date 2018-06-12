@@ -1,13 +1,14 @@
 ﻿using GameplayNs;
 using UnityEngine;
 using WeaponNs;
+using Placenote;
 
 namespace PlayerNs
 {
-    public class PlayerController : EventsSubscriber
+    public class PlayerController : GameEventsSubscriber
     {
         public WeaponController CurrentWeapon;
-        public GameSetupController GameSetup;
+        public GameObject WeaponModel;
         Vector3 centralScreenPoint = new Vector3 (0.5f, 0.5f, 0.0f);
 
         public float FullHealth = 1;
@@ -74,17 +75,19 @@ namespace PlayerNs
             return AimingCamera.ViewportPointToRay (centralScreenPoint);
         }
 
-        public bool IsDead { get { return CurrentHealth <= 0; } }
+        public bool IsDead { get; private set; }
 
         void Start ()
         {
             CurrentHealth = FullHealth;
             transform.parent = GameController.WorldRootObject.transform;
-            GameController.RegisterPlayer (this);
-            gameObject.transform.GetChild (0).gameObject.SetActive (false);
+            GameController.Instance.RegisterPlayer (this);
 
-            if (GameSetup == null)
-                GameSetup = FindObjectOfType<GameSetupController> ();
+            gameObject.transform.GetChild (0).gameObject.SetActive (false);
+            if (IsMe ())
+                WeaponModel.SetActive (false);
+                
+            IsDead = false;
         }
 
         private bool activateGun = true;
@@ -93,7 +96,7 @@ namespace PlayerNs
             base.Update ();
             if (activateGun)
             {
-                if (GameController.IsGamePlaying)
+                if (GameController.Instance.IsGamePlaying)
                 {
                     activateGun = false;
                     gameObject.transform.GetChild (0).gameObject.SetActive (true);
@@ -109,9 +112,7 @@ namespace PlayerNs
                 {
 
                     CurrentHealth -= damageAmount;
-                    GameController.Data.RegisterPlayerDeath ();
-
-
+                    GameController.Instance.Data.RegisterPlayerDeath ();
                 }
                 else
                 {
@@ -124,28 +125,40 @@ namespace PlayerNs
         [PunRPC]
         private void DecreaseHealth (float healDecreaseAmount)
         {
-            CurrentHealth -= healDecreaseAmount;
-            if (CurrentHealth < 0 && photonView.isMine && GameSetup.IsLocalized == true)
+            // Only decrease health if playing
+            if (PlacenoteMultiplayerManager.Instance.IsPlaying)
             {
-                Debug.Log ("Player dead!!! ");
-                GameController.Data.RegisterPlayerDeath ();
+                CurrentHealth -= healDecreaseAmount;
+                IsDead = true;
+                if (IsDead && photonView.isMine)
+                {
+                    Debug.Log ("Player dead!!! ");
+                    GameController.Instance.Data.RegisterPlayerDeath ();
+                }
             }
         }
 
         private void OnDestroy ()
         {
-            GameController.RemovePlayer (this);
+            GameController.Instance.RemovePlayer (this);
         }
 
-        override protected void NotifySomethingHappened (GameData.SomethingId id)
+        override protected void OnGameEvent (GameData.SomethingId id)
         {
             switch (id)
             {
                 case GameData.SomethingId.PlayerResurrected:
-                    CurrentHealth = FullHealth;
-                    Debug.Log ("Player ressurected!");
+                    photonView.RPC ("PlayerRevived", PhotonTargets.All);
                     break;
             }
+        }
+
+        [PunRPC]
+        private void PlayerRevived ()
+        {
+            IsDead = false;
+            CurrentHealth = FullHealth;
+            Debug.Log ("Player resurrected!");
         }
     }
 }

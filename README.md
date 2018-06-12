@@ -27,8 +27,6 @@ https://placenote.com/install/unity/build-xcode/
 
 <br/>
 
-**You will also need to add a "Privacy - Location When In Use Usage Description" key into your *Info.plist*. (This is so that you will only see photon rooms that are close by)**
-
 ##### Playing the Game:
 
 1. Open Place Invaders on both phones.
@@ -54,8 +52,7 @@ https://placenote.com/install/unity/build-xcode/
 ![PI_Gameplay](/Screenshots/Gameplay.png?raw=true "PI_Gameplay")
 
 *Note:* <br/>
-  *- There is also a single player option. To play, press Single Player and follow the host steps.* <br/>
-  *- Player 2 can join and leave at anytime. They just need to localize before they can play.*
+  *- Player 1 and Player 2 can join or leave at anytime. They just need to localize before they can play.*
 
 <br/>
 
@@ -73,32 +70,35 @@ https://placenote.com/install/unity/build-xcode/
 
 ### Important Scripts:
 
-##### *The important folders are Scripts/Gameplay, Scripts/PlacenoteSample, and Scripts/ServerController*
+**Project Setup**: This project's workflow is split into three different sections: *Main Menu*, *Placenote Multiplayer Manager*, and *Gameplay Session*. This project is designed so that you can easily take the Placenote Multiplayer Manager section, apply that to your own game, and turn it into a multiplayer AR masterpiece!
 
-**GameController.cs**: controls game logic including starting game, creating enemies, and managing players (creating new, registering,removing).
+#### <p align="center">Main Menu Section</p>
 
-**GameSetupController.cs**: controls EnvironmentScannerController so that the map can be setup for gameplay. Starts gameplay after mapping.
+This section is all of the menus before a player joins or hosts a game. It does not have any super important scripts. It is mostly just Unity UI navigation. Note that the UI is **controlled by Unity's built in UI system.**
 
-**GameData.cs**: stores game data. Also creates events about changes in game data and game state for UI components to update.
+#### <p align="center">Placenote Multiplayer Manager Section</p>
 
-**EnvironmentScannerController.cs**: manages Placenote (start mapping, finish mapping, get maps count, loading latest map,stop using map, delete all maps), starting ARKIt, and controls Placenote status.
+**PlacenoteMultiplayerManager.cs**: this is the most important class in the project. It is the master class that controls all of the Placenote mapping and Photon Multiplayer integration you will need. It has functionality to handle Photon connection, room setup, room joining, and room leaving. It also handles Placenote mapping, map saving, map loading, and localization. It contains subscribable events designed to interface with the rest of the project. This class is mostly called on OnClick button events and MappingText.cs.
 
-**ServerController.cs**: controls photon connection, and manages room joining and creation.
+**PlacenotePunMultiplayerBehaviour.cs**: an extendable class that provides all callbacks that PlacenoteMultiplayerManager can call. Most UI scripts extend this class to get updates on Placenote and Photon changes.
+
+**MappingText.cs**: controls the user feedback for a Placenote mapping session. Uses most of the callbacks from PlacenotePunMultiplayerBehaviour.
+
+#### <p align="center">Gameplay Session Section</p>
+**GameController.cs**: controls game logic including starting game, creating enemies, and managing players (creating new, registering, removing).
+
+**GameData.cs**: stores game data about enemies and players. Also creates events about changes in game data and game state for UI components to update.
 
 **PlayerPhotonGenerator.cs**: controls spawning of players.
 
-**PlayerController.cs**: controls current player including lives, fighting with enemies, and synchronizing with Photon.
+**PlayerController.cs**: controls player lives, damaging enemies, and synchronizing with Photon.
 
-**WeaponController.cs**: shooting enemies and call missing or hit actions on AnimatedGun script.
+**WeaponController.cs**: shoots enemies and calls missing or hit actions on AnimatedGun script.
 
-**AnimatedGun.cs**: creates shots that damage enemies. Also controls shooting animation, control time between shots, and synchronization shots with Photon.
+**AnimatedGun.cs**: creates shot that damages enemies. Also controls shooting animation, time between shots, and synchronization shots with Photon.
 
 **EnemyAI.cs**: controls enemies behaviour (attacking players, moving), and contains enemy properties( AttackPower, AttackTimeLimit, Speed etc.).
 
 **EnemyState.cs**: contains enemies health, player shot interaction, and enemy death.
 
 **RespawnPoint.cs**: controls spawn rate of enemy spawning.
-
-**MainMenuUIController.cs/GameUIController.cs**: controls UI element: buttons, text labels, etc. Performs buttons click actions.
-
-*Note: This project is being updated, and not everything is fully commented or organized. The scripts will be commented to provide further insight to how this demo works.*

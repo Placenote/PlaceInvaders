@@ -52,7 +52,7 @@ namespace EnemiesNs
             get
             {
                 if (_targetPlayer == null)
-                    _targetPlayer = GameController.GetRandomPlayer ();
+                    _targetPlayer = GameController.Instance.GetRandomPlayer ();
                 return _targetPlayer;
             }
         }
@@ -82,7 +82,7 @@ namespace EnemiesNs
 
         void DoActivity (float deltaTime)
         {
-            if (GameController.Data.GameState != GameStateId.GamePlaying)
+            if (GameController.Instance.Data.GameState != GameStateId.GamePlaying)
                 return;
 
             switch (CurrentStage)
@@ -167,7 +167,7 @@ namespace EnemiesNs
             do
             {
                 yield return new WaitForSeconds (0.25f);
-                player = GameController.GetRandomPlayer ();
+                player = GameController.Instance.GetRandomPlayer ();
                 timeout++;
             }
             while ((player == null || player.IsDead) && timeout < 15);

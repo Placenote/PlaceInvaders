@@ -34,7 +34,7 @@ namespace EnemiesNs
                 else
                     Instantiate (DeathPrefab, transform.position, transform.rotation);
 
-            GameController.Data.TotalEnemies--;
+            GameController.Instance.Data.TotalEnemies--;
             Destroy (gameObject);
         }
 
@@ -43,7 +43,7 @@ namespace EnemiesNs
             if (CurrentHealth - damage < 0)
             {
                 if (0 <= CurrentHealth)
-                    GameController.Data.Kills++;
+                    GameController.Instance.Data.Kills++;
             }
 
             if (PhotonNetwork.offlineMode || !PhotonNetwork.connected)
