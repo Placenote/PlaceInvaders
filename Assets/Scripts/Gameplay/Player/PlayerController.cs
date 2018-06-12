@@ -8,6 +8,7 @@ namespace PlayerNs
     public class PlayerController : GameEventsSubscriber
     {
         public WeaponController CurrentWeapon;
+        public GameObject WeaponModel;
         Vector3 centralScreenPoint = new Vector3 (0.5f, 0.5f, 0.0f);
 
         public float FullHealth = 1;
@@ -83,6 +84,9 @@ namespace PlayerNs
             GameController.Instance.RegisterPlayer (this);
 
             gameObject.transform.GetChild (0).gameObject.SetActive (false);
+            if (IsMe ())
+                WeaponModel.SetActive (false);
+                
             IsDead = false;
         }
 

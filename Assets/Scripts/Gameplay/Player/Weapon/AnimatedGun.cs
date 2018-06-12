@@ -7,7 +7,6 @@ namespace WeaponNs
 {
     public class AnimatedGun : MonoBehaviour
     {
-        public Transform Muzzle;
         [Range (0, 1)]
         public float DamageAmount = 0.5f;
 
@@ -42,13 +41,11 @@ namespace WeaponNs
         {
             MakeDamage (hit, DamageAmount);
             AnimateShot ();
-            Debug.DrawLine (Muzzle.position, hit.point, Color.yellow, 0.5f);
         }
 
         public void DoMissedShot (Vector3 targetPosition)
         {
             AnimateShot ();
-            Debug.DrawLine (Muzzle.position, targetPosition, Color.blue, 0.5f);
         }
 
         void AnimateShot ()

@@ -203,6 +203,9 @@ namespace Placenote
 
         #endregion Local player info
 
+        // Variable to control debugging features
+        public bool mDebug;
+
         #region Singleton
 
         private static PlacenoteMultiplayerManager sInstance = null;
@@ -270,6 +273,11 @@ namespace Placenote
             mSession = UnityARSessionNativeInterface.GetARSessionNativeInterface ();
             UnityARSessionNativeInterface.ARFrameUpdatedEvent += ARFrameUpdated;
             StartARKit ();
+
+            if (mDebug)
+            {
+                FeaturesVisualizer.EnablePointcloud ();
+            }
         }
 
         private void Update ()
@@ -620,8 +628,11 @@ namespace Placenote
         public void StopMapping ()
         {
             // Disable visable point cloud
-            FeaturesVisualizer.DisablePointcloud ();
-            FeaturesVisualizer.clearPointcloud ();
+            if (!mDebug)
+            {
+                FeaturesVisualizer.DisablePointcloud ();
+                FeaturesVisualizer.clearPointcloud ();
+            }
 
             // Saves map and gives feedback via EnvironmentMappingProgress() and EnvironmentMappingComplete()
             LibPlacenote.Instance.SaveMap ((mapId) =>
