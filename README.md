@@ -23,7 +23,7 @@ Devices tested OS: 11.3
 2. Register for a free Placenote account and get your api key here: https://developer.placenote.com. To Add your Placenote API key, find the ARCameraManager object in the Scene hierarchy and add your API key under the LibPlacenote component in the Inspector Panel.
 
 3. Build the Unity project by Switching Platform to iOS in the Build Settings and click build to generate the XCode project. To build and run the XCode, follow the instructions on this page:
-https://placenote.com/install/unity/build-xcode/
+https://placenote.com/docs/unity/build-instructions/
 
 <br/>
 
